@@ -1,0 +1,243 @@
+import React, { useState, useEffect } from "react";
+
+const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList }) => {
+    const [obligationRequest, setObligationRequest] = useState({
+        obligation: {
+            name: "",
+            description: "",
+            amount: 0,
+            startDate: new Date().toISOString(),
+            dueDate: new Date().toISOString(),
+            wallet: null,
+        },
+        walletId: walletId,
+    });
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showForm, setShowForm] = useState(true); 
+
+    useEffect(() => {
+        fetch("/api/obligation/allCategories")
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch categories');
+                }
+                return response.json();
+            })
+            .then((data) => {
+                setCategories(data);
+                setLoading(false);
+            })
+            .catch((error) => {
+                console.error('Error fetching categories:', error);
+                setLoading(false);
+            });
+    }, []);
+
+    const [formError, setFormError] = useState("");
+    const [confirmationVisible, setConfirmationVisible] = useState(false);
+    const [information, setInformation] = useState("");
+
+    const resetForm = () => {
+        setObligationRequest({
+            obligation: {
+                name: "",
+                description: "",
+                amount: 0,
+                startDate: new Date().toISOString(),
+                dueDate: new Date().toISOString(),
+                wallet: null,
+            },
+            walletId: walletId,
+        });
+        setInformation("");
+        setFormError("");
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        console.log(obligationRequest);
+        try {
+            let url = "/api/obligation/addObligation";
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(obligationRequest),
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                resetForm();
+                setConfirmationVisible(true);
+                setShowForm(false); 
+                setTimeout(() => {
+                    setConfirmationVisible(false);
+                }, 1500);
+                refreshObligationsList();
+            } else {
+                console.error(response);
+                setFormError("Invalid form data");
+            }
+        } catch (error) {
+            console.error("Error adding transaction:", error);
+            setFormError("Error adding transaction");
+        }
+    };
+
+
+    return (
+        <div style={{ marginTop: "10px" }}>
+            {showForm && (
+                <div className="card w-50 h-auto m-auto mb-5 p-3 pt-3" >
+                    <form onSubmit={handleSubmit} className="row w-100 g-3">
+                        <h5>Add New Obligation</h5>
+                        <select
+                            className="form-control"
+                            value={obligationRequest.obligation.categoryId}
+                            onChange={(e) =>
+                                setObligationRequest({
+                                    ...obligationRequest,
+                                    obligation: {
+                                        ...obligationRequest.obligation,
+                                        categoryId: e.target.value,
+                                    },
+                                })
+                            }
+                        >
+                            <option value="">Select a category</option>
+                            {categories
+                                .filter(category => category.type === "Obligation") 
+                                .map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
+                        </select>
+
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="name"
+                            value={obligationRequest.obligation.name}
+                            placeholder="Enter Title"
+                            onChange={(e) =>
+                                setObligationRequest({
+                                    ...obligationRequest,
+                                    obligation: {
+                                        ...obligationRequest.obligation,
+                                        name: e.target.value,
+                                    },
+                                })
+                            }
+                            required
+                        />
+                        <input
+                            type="text"
+                            className="form-control"
+                            name="description"
+                            value={obligationRequest.obligation.description}
+                            placeholder="Enter description"
+                            onChange={(e) =>
+                                setObligationRequest({
+                                    ...obligationRequest,
+                                    obligation: {
+                                        ...obligationRequest.obligation,
+                                        description: e.target.value,
+                                    },
+                                })
+                            }
+                        />
+                        <input
+                            type="number"
+                            className="form-control"
+                            name="amount"
+                            value={obligationRequest.obligation.amount}
+                            placeholder="Enter amount"
+                            onChange={(e) =>
+                                setObligationRequest({
+                                    ...obligationRequest,
+                                    obligation: {
+                                        ...obligationRequest.obligation,
+                                        amount: e.target.value,
+                                    },
+                                })
+                            }
+                            required
+                        />
+                        <input
+                            type="date"
+                            className="form-control"
+                            name="startDate"
+                            value={obligationRequest.obligation.startDate}
+                            onChange={(e) =>
+                                setObligationRequest({
+                                    ...obligationRequest,
+                                    obligation: {
+                                        ...obligationRequest.obligation,
+                                        startDate: e.target.value,
+                                    },
+                                })
+                            }
+                            required
+                        />
+                        <input
+                            type="date"
+                            className="form-control"
+                            name="dueDate"
+                            value={obligationRequest.obligation.dueDate}
+                            onChange={(e) =>
+                                setObligationRequest({
+                                    ...obligationRequest,
+                                    obligation: {
+                                        ...obligationRequest.obligation,
+                                        dueDate: e.target.value,
+                                    },
+                                })
+                            }
+                            required
+                        />
+
+                        <select
+                            className="form-control"
+                            value={obligationRequest.obligation.categoryRepaymentId} 
+                            onChange={(e) =>
+                                setObligationRequest({
+                                    ...obligationRequest,
+                                    obligation: {
+                                        ...obligationRequest.obligation,
+                                        categoryRepaymentId: e.target.value,
+                                    },
+                                })
+                            }
+                        >
+                            <option value="">Select a repayment category</option>
+                            {categories
+                                .filter(category => category.type === "Repayment") 
+                                .map((category) => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
+                        </select>
+
+                        {information && <div className="error">{information}</div>}
+                        {formError && <div className="col-md-12 error">{formError}</div>}
+                        <button type="submit" className="btn btn-primary col-12">
+                            Add
+                        </button>
+                    </form>
+                </div>
+            )}
+           {confirmationVisible && (
+              <div className="alert alert-success" role="alert">
+                  Obligation added successfully!
+               </div>
+            )}
+      </div>
+    );
+};
+export default ObligationForm;
