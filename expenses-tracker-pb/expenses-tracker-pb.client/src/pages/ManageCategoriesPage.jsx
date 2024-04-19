@@ -15,7 +15,7 @@ const ManageCategories = () => {
         name: '',
         type: 'Expenditure',
     });
-    const [isLoggedIn, setIsLoggedIn] = useState(true); // Ustawienie początkowe na true
+    const [isLoggedIn, setIsLoggedIn] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -63,7 +63,6 @@ const ManageCategories = () => {
     const handleAddCategory = async () => {
         if (newCategory.name === '') {
             showWarningAlert('You have to name your category!');
-            //setInformation('You have to name your category!');
         }
         else {
             const foundCategory = categories.find(
@@ -82,20 +81,16 @@ const ManageCategories = () => {
 
                     if (!response.ok) {
                         showFailedAlert('Error during adding category.');
-                        //setInformation('Error during adding category.');
                         throw new Error('Failed to add category');
                     }
 
                     showSuccessAlert('Category added successfully.');
-                   //setInformation('Category added successfully.');
                 } catch (error) {
                     console.error('Error during adding category:', error);
-                    //setInformation('Error during adding category.');
                     showFailedAlert('Error during adding category.');
                 }
             }
             else {
-                //setInformation('Category with that name already exists!');
                 showWarningAlert('Category with that name already exists!');
             }
         }
@@ -105,7 +100,6 @@ const ManageCategories = () => {
 
     const handleEditCategory = async () => {
         if (editingCategory.name === '') {
-            //setInformation('You have to name your category!');
             showWarningAlert('You have to name your category!');
         }
         else {
@@ -124,20 +118,16 @@ const ManageCategories = () => {
                     });
 
                     if (!response.ok) {
-                       // setInformation('Error during saving changes.');
                         showFailedAlert('Error during saving changes.');
                         throw new Error('Failed to edit category');
                     }
                     showSuccessAlert('Changes saved.');
-                   // setInformation('Changes saved.');
                 } catch (error) {
                     console.error('Error during editing category:', error);
-                    //setInformation('Error during saving changes.');
                     showFailedAlert('Error during saving changes.');
                 }
             }
             else {
-                //setInformation('Category with that name already exists!');
                 showWarningAlert('Category with that name already exists!');
             }
         }
@@ -151,7 +141,6 @@ const ManageCategories = () => {
         const hasTransactions = await checkTransactionsForCategory(categoryId);
 
         if (hasTransactions) {
-            //setInformation('There are transactions associated with this category. Cannot delete.');
             showFailedAlert('There are transactions associated with this category. Cannot delete.');
         }
         else {
@@ -162,17 +151,14 @@ const ManageCategories = () => {
                 });
 
                 if (!response.ok) {
-                   // setInformation('Failed to delete category.');
                     showFailedAlert('Failed to delete category.');
                     throw new Error('Failed to delete category');
                 }
 
-              //  setInformation('Category deleted.');
                 showSuccessAlert('Category deleted.');
                 fetchCategories();
             } catch (error) {
                 console.error('Error during deleting category:', error);
-               // setInformation('Failed to delete category.');
                 showFailedAlert('Failed to delete category.');
             }
         }

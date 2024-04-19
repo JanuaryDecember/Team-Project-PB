@@ -76,7 +76,6 @@ const RegisterForm = () => {
                 if (response.ok) {
                     showSuccessAlert("Registration successful! ");
                     showWarningAlert("You will be redirected to the login page in 2 seconds.");
-                    //setRegisterError("Registration successful! You will be redirected to the login page in 2 seconds.");
                     setTimeout(() => {
                         navigate("/");
                     }, 2000);

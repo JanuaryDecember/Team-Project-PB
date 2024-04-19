@@ -14,7 +14,6 @@ function Import() {
 
 
   useEffect(() => {
-    //handle if user isn't logged in
     const isUserLogged = async () => {
         try {
             const response = await fetch("/api/import/user", {
@@ -23,7 +22,6 @@ function Import() {
                     "Content-Type": "application/json",
                 },
                 credentials: "include",
-                //body: JSON.stringify(tempId),
             });
 
             if (response.status === 401) {
@@ -56,10 +54,8 @@ function Import() {
       const reader = new FileReader();
 
       reader.onload = (e) => {
-        // e.target.result contains the content of the file
         const fileContent = e.target.result;
 
-        // Now you can process the file content, e.g., parse it as JSON
         try {
           const parsedData = JSON.parse(fileContent);
           createWalletArray(parsedData);
@@ -132,7 +128,6 @@ function Import() {
   }
 
   const sendselectedWalletsID = async () => {
-    //selectedWallets
     const selectedWalletToImport = wallets.filter((wallet) =>
       selectedWalletsID.includes(wallet.Id)
     );

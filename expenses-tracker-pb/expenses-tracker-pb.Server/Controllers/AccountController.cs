@@ -11,9 +11,6 @@ using Newtonsoft.Json;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Cryptography;
-using System;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Identity.UI.Services;
 
 [ApiController]
 [Route("api/account")]
@@ -67,14 +64,12 @@ public class AccountController : ControllerBase
             return Unauthorized("Invalid credentials.");
         }
 
-        // Two-Factor Authentication is needed
         if (user.TwoFactorEnabled && cred.AuthKey == null)
         {
             return StatusCode(202, "Two-Factor Authentication");
         }
         else if (user.TwoFactorEnabled && cred.AuthKey != null)
         {
-            // Validate key
             TwoFactorAuthenticator TwoFacAuth = new TwoFactorAuthenticator();
             bool isValid = TwoFacAuth.ValidateTwoFactorPIN(user.GoogleAuthKey, cred.AuthKey, TimeSpan.FromSeconds(15));
 
@@ -84,7 +79,6 @@ public class AccountController : ControllerBase
             }
         }
 
-        // Generowanie tokena JWT
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = GenerateRandomKey();
 
@@ -103,7 +97,6 @@ public class AccountController : ControllerBase
         var tokenString = tokenHandler.WriteToken(token);
         await _signInManager.SignInAsync(user, isPersistent: false);
 
-        // Zwr�� token JWT w odpowiedzi
         return Ok(new { Token = tokenString });
     }
 
@@ -115,7 +108,7 @@ public class AccountController : ControllerBase
         {
             byte[] uintBuffer = new byte[sizeof(uint)];
 
-            for (int i = 0; i < 64; i++) // Generowanie klucza o d�ugo�ci 64 znak�w
+            for (int i = 0; i < 64; i++)
             {
                 rng.GetBytes(uintBuffer);
                 uint num = BitConverter.ToUInt32(uintBuffer, 0);
@@ -161,13 +154,11 @@ public class AccountController : ControllerBase
     [HttpPost("changePassword")]
     public async Task<ActionResult> changePassword([FromBody] PasswordChange data)
     {
-        // Checking if user exist
         var existingUser = await _userManager.FindByNameAsync(data.username);
         if (existingUser == null)
         {
             return BadRequest("Unsuccessful");
         }
-        // Change password throw e-mail
         if (data.email == true)
         {
             if (existingUser.ResetPasswordCode != data.code || existingUser.ResetPasswordCodeExpireTime <= DateTime.Now)
@@ -175,7 +166,6 @@ public class AccountController : ControllerBase
                 return BadRequest("Unsuccessful");
             }
         }
-        // Change password throw 2fa
         else if (data.fa == true && existingUser.TwoFactorEnabled)
         {
             TwoFactorAuthenticator TwoFacAuth = new TwoFactorAuthenticator();
@@ -186,10 +176,8 @@ public class AccountController : ControllerBase
                 return BadRequest("Unsuccessful");
             }
         }
-        // Request body is incorrect
         else return BadRequest("Unsuccessful");
 
-        // Setting new password for user
         var token = await _userManager.GeneratePasswordResetTokenAsync(existingUser);
         var result = await _userManager.ResetPasswordAsync(existingUser, token, data.newPassword);
 
@@ -377,13 +365,11 @@ public class AccountController : ControllerBase
                 string GoogleAuthKey = "";
                 string QrImageUrl = "";
                 const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-                // Generate 10 char secret key
                 Random random = new Random();
                 for (int i = 0; i < 10; i++)
                 {
                     GoogleAuthKey += validChars[random.Next(0, validChars.Length)];
                 }
-                // Generate setupcode
                 TwoFactorAuthenticator TwoFacAuth = new TwoFactorAuthenticator();
                 var setupInfo = TwoFacAuth.GenerateSetupCode("ExpensionTracker", user.UserName, ConvertSecretToBytes(GoogleAuthKey, false), 200);
                 QrImageUrl = setupInfo.QrCodeSetupImageUrl;
@@ -410,7 +396,6 @@ public class AccountController : ControllerBase
 
             if (user != null)
             {
-                // Read json data from body
                 string requestBody;
                 using (var reader = new System.IO.StreamReader(Request.Body))
                 {
@@ -419,7 +404,6 @@ public class AccountController : ControllerBase
                 dynamic data = JObject.Parse(requestBody);
                 string authKey = data.authKey;
                 string enteredAuthKey = data.enteredAuthKey;
-                // Validate key
                 TwoFactorAuthenticator TwoFacAuth = new TwoFactorAuthenticator();
                 bool isValid = TwoFacAuth.ValidateTwoFactorPIN(authKey, enteredAuthKey, TimeSpan.FromSeconds(15));
 
@@ -455,7 +439,6 @@ public class AccountController : ControllerBase
 
             if (user != null)
             {
-                // Read json data from body
                 string requestBody;
                 using (var reader = new System.IO.StreamReader(Request.Body))
                 {
@@ -463,7 +446,6 @@ public class AccountController : ControllerBase
                 }
                 dynamic data = JObject.Parse(requestBody);
                 string enteredAuthKey = data.enteredAuthKey;
-                // Validate key
                 TwoFactorAuthenticator TwoFacAuth = new TwoFactorAuthenticator();
                 bool isValid = TwoFacAuth.ValidateTwoFactorPIN(user.GoogleAuthKey, enteredAuthKey, TimeSpan.FromSeconds(15));
 

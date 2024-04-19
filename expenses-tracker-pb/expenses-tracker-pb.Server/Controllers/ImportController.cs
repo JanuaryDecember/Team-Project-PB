@@ -20,7 +20,6 @@ namespace _2023pz_trrepo.Controllers
 
         private void checkWalletNames(String? currentUserId, List<ImportedWallet> importedWallets)
         {
-            //current user wallets
             var currentWallets = _dbContext.Wallets.AsNoTracking().Where(x => x.UserId.Equals(currentUserId)).ToList();
 
             foreach (Wallet wallet in currentWallets)
@@ -52,9 +51,7 @@ namespace _2023pz_trrepo.Controllers
         [HttpPost("importWallets")]
         public async Task<IActionResult> ImportWallets([FromBody] List<ImportedWallet> wallets)
         {
-            //currentUserId
             var currentUserId = GetCurrentUserId();
-            //current User
             var user = await _dbContext.Users
             .Include("Wallets")
             .FirstOrDefaultAsync(u => u.Id == currentUserId);
@@ -62,7 +59,6 @@ namespace _2023pz_trrepo.Controllers
             checkWalletNames(currentUserId, wallets);
 
             Console.WriteLine("Received wallets:");
-            //console log information about improted wallets
             foreach (var wallet in wallets)
             {
                 if (wallet != null && user != null)

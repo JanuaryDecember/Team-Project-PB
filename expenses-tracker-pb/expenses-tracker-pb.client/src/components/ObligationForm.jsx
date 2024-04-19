@@ -9,7 +9,6 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList }) =
             startDate: new Date().toISOString(),
             dueDate: new Date().toISOString(),
             wallet: null,
-            //category: "", 
         },
         walletId: walletId,
     });
@@ -48,7 +47,6 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList }) =
                 startDate: new Date().toISOString(),
                 dueDate: new Date().toISOString(),
                 wallet: null,
-                //category: "", 
             },
             walletId: walletId,
         });

@@ -79,7 +79,6 @@ namespace _2023pz_trrepo.Controllers
             
             List<Wallet> userWalletList = _dbContext.Wallets.Where(x => x.UserId.Equals(userId)).ToList();
 
-            //for each wallet we need to add incomes and expenditures
             foreach(Wallet wallet in userWalletList){
                 addIncomesToWallet(wallet);
                 addExpendituresToWallet(wallet);

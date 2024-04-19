@@ -11,7 +11,7 @@ const ChartReport = ({ summary }) => {
             const yValues = [summary.totalIncome, summary.totalExpenditure];
 
             if (chartRef.current && chartRef.current.chart) {
-                chartRef.current.chart.destroy(); // Destroy the previous chart instance
+                chartRef.current.chart.destroy(); 
             }
 
             chartRef.current.chart = new Chart(ctx, {

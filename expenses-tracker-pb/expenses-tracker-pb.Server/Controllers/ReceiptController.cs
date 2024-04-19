@@ -24,7 +24,6 @@ public class ReceiptController : ControllerBase
 
 		try
 		{
-			// Uzyskanie danych uwierzytelniających
 			var clientId = "";
 			var clientSecret = "";
 			var scopes = new[] { @"https://www.googleapis.com/auth/devstorage.full_control" };
@@ -38,14 +37,12 @@ public class ReceiptController : ControllerBase
 			var cts = new CancellationTokenSource();
 			var userCredential = await GoogleWebAuthorizationBroker.AuthorizeAsync(clientSecrets, scopes, "czyzia06@gmail.com", cts.Token);
 
-			// Utworzenie usługi Google Cloud Storage
 			var service = new StorageService(new BaseClientService.Initializer
 			{
 				HttpClientInitializer = userCredential,
 				ApplicationName = "Expenses Tracker"
 			});
 
-			// Tworzenie nowego kubełka
 			var newBucket = new Google.Apis.Storage.v1.Data.Bucket()
 			{
 				Name = "nazwa_twojego_kubełka"
@@ -54,25 +51,20 @@ public class ReceiptController : ControllerBase
 			var newBucketRequest = service.Buckets.Insert(newBucket, ProjectName);
 			await newBucketRequest.ExecuteAsync();
 
-			// Pobranie listy kubełków
 			var bucketsRequest = service.Buckets.List(ProjectName);
 			var bucketsResponse = await bucketsRequest.ExecuteAsync();
 			var buckets = bucketsResponse.Items;
 
-			// Wybór pierwszego kubełka 
 			var bucketToUpload = buckets.FirstOrDefault()?.Name;
 
-			// Tworzenie nowego obiektu
 			var newObject = new Google.Apis.Storage.v1.Data.Object()
 			{
 				Bucket = bucketToUpload,
 				Name = "some-file-" + new Random().Next(1, 666)
 			};
 
-			// Przygotowanie pliku do przesłania
 			using (var fileStream = file.OpenReadStream())
 			{
-				// Przesłanie pliku do Google Cloud Storage
 				var uploadRequest = service.Objects.Insert(newObject, bucketToUpload, fileStream, "image/png");
 				await uploadRequest.UploadAsync();
 			}

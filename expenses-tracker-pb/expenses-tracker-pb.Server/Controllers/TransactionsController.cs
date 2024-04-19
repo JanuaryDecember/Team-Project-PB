@@ -722,7 +722,6 @@ public class TransactionsController : ControllerBase
         {
             var comparisonData = new List<MonthlyComparisonItem>();
 
-            // Zbierz dane porównawcze dla każdego z sześciu poprzednich miesięcy
             for (int i = 0; i < 6; i++)
             {
                 var currentDate = new DateTime(year, month, 1).AddMonths(-i);
@@ -741,13 +740,12 @@ public class TransactionsController : ControllerBase
 
 
 
-                // Dodaj dane do porównania
                 comparisonData.Add(new MonthlyComparisonItem
                 {
                     Month = startDate.Month,
                     Year = startDate.Year,
                     Expenditure = expenditures,
-                    Income = incomes // Dodaj dane dotyczące wpływów
+                    Income = incomes
                 });
             }
 
@@ -830,20 +828,17 @@ public class TransactionsController : ControllerBase
                 .Select(w => w.Name)
                 .FirstOrDefault();
 
-            // Tworzenie nowego dokumentu PDF
             Document document = new Document();
             MemoryStream memoryStream = new MemoryStream();
             iTextSharp.text.pdf.PdfWriter writer = iTextSharp.text.pdf.PdfWriter.GetInstance(document, memoryStream);
             document.Open();
 
-            // Dodawanie zawartości do dokumentu PDF
             iTextSharp.text.Font titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.BLACK);
             iTextSharp.text.Paragraph title = new iTextSharp.text.Paragraph($"Monthly Report for {CultureInfo.GetCultureInfo("en-US").DateTimeFormat.GetMonthName(month)} {year}", titleFont);
             title.Alignment = iTextSharp.text.Element.ALIGN_CENTER;
             title.SpacingAfter = 18f;
             document.Add(title);
 
-            // Dodawanie informacji o raporcie
             BaseFont baseFont = BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED);
             iTextSharp.text.Font normalFont = new iTextSharp.text.Font(baseFont, 12, iTextSharp.text.Font.NORMAL);
             iTextSharp.text.Font headerFont = new iTextSharp.text.Font(baseFont, 12, iTextSharp.text.Font.BOLD);
@@ -859,9 +854,7 @@ public class TransactionsController : ControllerBase
             document.Add(balanceInfo);
 
             document.Add(new iTextSharp.text.Paragraph("\n"));
-            // Dodawanie transakcji
-            PdfPTable table = new PdfPTable(4); // 4 kolumny dla daty, tytułu, opisu i kwoty
-
+            PdfPTable table = new PdfPTable(4);
             table.AddCell(new PdfPCell(new Phrase("Date", headerFont)));
             table.AddCell(new PdfPCell(new Phrase("Title", headerFont)));
             table.AddCell(new PdfPCell(new Phrase("Description", headerFont)));
@@ -887,14 +880,11 @@ public class TransactionsController : ControllerBase
 
             document.Add(table);
 
-            // Zakończenie edycji dokumentu
             document.Close();
             writer.Close();
 
-            // Pobierz zawartość pliku z pamięci podręcznej
             byte[] fileContents = memoryStream.ToArray();
 
-            // Zwróć plik PDF jako odpowiedź HTTP
             string fileName = $"{walletName}_monthly_report_{month}_{year}.pdf";
 
             return File(fileContents, "application/pdf", fileName);
@@ -971,18 +961,14 @@ public class TransactionsController : ControllerBase
                 .Select(w => w.Name)
                 .FirstOrDefault();
 
-            // Tworzenie nowego arkusza
-            // ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // Ustawienie kontekstu licencji
             ExcelPackage excelPackage = new ExcelPackage();
             ExcelWorksheet worksheet = excelPackage.Workbook.Worksheets.Add("Monthly Report");
 
-            // Ustawienie nagłówków kolumn
             worksheet.Cells[1, 1].Value = "Date";
             worksheet.Cells[1, 2].Value = "Title";
             worksheet.Cells[1, 3].Value = "Description";
             worksheet.Cells[1, 4].Value = "Amount";
 
-            // Wypełnienie danymi
             int row = 2;
             foreach (var transaction in transactions)
             {
@@ -995,12 +981,10 @@ public class TransactionsController : ControllerBase
                 row++;
             }
 
-            // Zapisanie pliku
             byte[] fileContents;
             string fileName = $"{walletName}_monthly_report_{month}_{year}.xlsx";
             fileContents = excelPackage.GetAsByteArray();
 
-            // Zwrócenie pliku Excel jako odpowiedź HTTP
             return File(fileContents, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
         catch (Exception ex)

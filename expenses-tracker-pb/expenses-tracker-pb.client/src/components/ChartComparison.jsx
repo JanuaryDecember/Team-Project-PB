@@ -29,7 +29,7 @@ const Comparison = ({ walletId, year, month }) => {
     useEffect(() => {
         if (comparisonData.length > 0) {
             if (chartInstance) {
-                chartInstance.destroy(); // Destroy existing chart instance
+                chartInstance.destroy();
             }
 
             const ctx = chartRef.current.getContext('2d');

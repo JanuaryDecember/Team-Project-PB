@@ -22,7 +22,6 @@ function Export() {
             "Content-Type": "application/json",
           },
           credentials: "include",
-          //body: JSON.stringify(tempId),
         });
 
         if (response.ok) {
@@ -123,11 +122,9 @@ function Export() {
       document.body.appendChild(a);
       a.click();
 
-      // Cleanup
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Reset selection after export
       setSelectedWallets([]);
       setNothingSelected(false);
     }

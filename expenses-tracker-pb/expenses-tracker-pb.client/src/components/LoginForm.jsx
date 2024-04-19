@@ -35,7 +35,6 @@ const LoginForm = ({ onLogin }) => {
       });
 
       if (response.status === 202) {
-          // Redirect to Two-Factor authentication form
           showWarningAlert("Two-Factor authentication!");
         setVisibleAuth(true);
       } else if (response.ok) {

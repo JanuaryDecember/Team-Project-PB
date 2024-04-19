@@ -114,7 +114,7 @@ const WalletPage = () => {
 
     useEffect(() => {
         fetchWallets();
-    }, []); // Run only once on component mount
+    }, []); 
 
     const submitNewWallet = async (e) => {
         e.preventDefault();
@@ -133,7 +133,7 @@ const WalletPage = () => {
             });
             if (response.ok) {
                 setWalletName("");
-                fetchWallets(); // Fetch updated wallets after adding a new wallet
+                fetchWallets();
             } else {
                 console.error(response);
                 setWalletFormError("Invalid form data");
