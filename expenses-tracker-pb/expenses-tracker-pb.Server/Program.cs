@@ -9,7 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<ETDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<ETDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("PaulinaConnection")));
 
 builder.Services.AddCors();
 
@@ -33,7 +33,6 @@ builder.Services.AddIdentity<User, IdentityRole>()
 builder.Services.AddAuthorization();
 
 builder.Services.AddTransient<EmailSender>();
-
 
 var app = builder.Build();
 
