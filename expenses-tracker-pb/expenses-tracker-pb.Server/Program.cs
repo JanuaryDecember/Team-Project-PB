@@ -34,7 +34,6 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddTransient<EmailSender>();
 
-
 var app = builder.Build();
 
 app.UseCors(builder =>
