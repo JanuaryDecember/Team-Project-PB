@@ -138,7 +138,8 @@ public class AccountController : ControllerBase
             Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Wallets = new List<Wallet>()
+            Wallets = new List<Wallet>(),
+            EmailTwoFactorAuthenticationEnabled = false
         };
 
         var result = await _userManager.CreateAsync(newUser, user.Password);
@@ -201,7 +202,7 @@ public class AccountController : ControllerBase
             byte[] bytes = new byte[6];
             random.NextBytes(bytes);
             string code = Convert.ToBase64String(bytes).Substring(0, 8);
-            _emailSender.SendEmail(existingUser.Email, code);
+            _emailSender.sendPasswordRecoveryCode(existingUser.Email, code);
             existingUser.ResetPasswordCode = code;
             existingUser.ResetPasswordCodeExpireTime = DateTime.Now.AddMinutes(1);
             await _dbContext.SaveChangesAsync();
@@ -328,6 +329,174 @@ public class AccountController : ControllerBase
     private static byte[] ConvertSecretToBytes(string secret, bool secretIsBase32) =>
        secretIsBase32 ? Base32Encoding.ToBytes(secret) : Encoding.UTF8.GetBytes(secret);
 
+    // Email authentication
+    [Authorize]
+    [HttpPost("disableEmailAuthentication")]
+    public async Task<IActionResult> disableEmailAuthentication()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                if (user.EmailTwoFactorAuthenticationEnabled == true)
+                {
+                    string requestBody;
+                    using (var reader = new System.IO.StreamReader(Request.Body))
+                    {
+                        requestBody = await reader.ReadToEndAsync();
+                    }
+                    dynamic data = JObject.Parse(requestBody);
+                    string emailAuthenticationCode = data.emailAuthenticationCode;
+
+                    
+                    if (user.EmailTwoFactorAuthenticationCode != emailAuthenticationCode ||
+                        user.EmailTwoFactorAuthenticationExpiryTime < DateTime.Now)
+                    {
+                        return Unauthorized(new { message = "Code is not valid or expired" });
+                    }
+
+                    user.EmailTwoFactorAuthenticationEnabled = false;
+                    _dbContext.Update(user);
+                    _dbContext.SaveChanges();
+
+                    return Ok(new { message = "Verification disabled" });
+                    
+                }
+                else
+                {
+                    return Ok(new { message = "Verification is already disabled" });
+                }
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpPost("enableEmailAuthentication")]
+    public async Task<IActionResult> enableEmailAuthentication()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                if (user.EmailTwoFactorAuthenticationEnabled == true)
+                {
+                    
+                    return Ok(new { message = "Verification is already active"});
+                }
+                else{
+                    user.EmailTwoFactorAuthenticationEnabled = true;
+                    _dbContext.Update(user);
+                    _dbContext.SaveChanges();
+
+                    return Ok(new { message = "Verification activated" });
+                }
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpGet("getEmailAuthenticationStatus")]
+    public async Task<IActionResult> getEmailAuthentication()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                return Ok(new { EmailAuthentication = user.EmailTwoFactorAuthenticationEnabled });
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpPost("sendEmailAuthenticationCode")]
+    public async Task<IActionResult> sendEmailAuthenticationCode()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                if (user.EmailTwoFactorAuthenticationEnabled == true)
+                {
+                    // Check if user already sent request recently
+                    TimeSpan roznica = DateTime.Now - user.LastEmailTwoFactorAuthenticationCodeSent.GetValueOrDefault();
+                    if (roznica.TotalMinutes <= 1)
+                    {
+                        
+                        return Ok(new { message = "Too many request, try later" });
+                    }
+                    // Generate code
+                    string code = "";
+                    const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+                    Random random = new Random();
+                    for (int i = 0; i < 10; i++)
+                    {
+                        code += validChars[random.Next(0, validChars.Length)];
+                    }
+                    // Save code and expiry time
+                    user.EmailTwoFactorAuthenticationCode = code;
+                    user.EmailTwoFactorAuthenticationExpiryTime = DateTime.Now.AddMinutes(5);
+                    user.LastEmailTwoFactorAuthenticationCodeSent = DateTime.Now;
+
+                    // Save data to database
+                    _dbContext.Update(user);
+                    _dbContext.SaveChanges();
+
+                    //Send email
+                    _emailSender.SendTwoFactorAuthenticationCode(user.Email,user.EmailTwoFactorAuthenticationCode);
+                    return Ok(new { message = "Email with your code have been sent" });
+                }
+                
+                return Ok(new { message = "Verification is not enable" });
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
+
+    // -------------------------------------------------------------
     [Authorize]
     [HttpGet("GetTwoFactorStatus")]
     public async Task<IActionResult> GetTwoFactorStatus()
@@ -492,7 +661,6 @@ public class AccountController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return userId;
     }
-
 
     [HttpPost("user")]
     public IActionResult IsUserLogged()
