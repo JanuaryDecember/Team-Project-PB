@@ -19,6 +19,9 @@ const ProfilePage = () => {
     const [alertMessage, setAlertMessage] = useState('');
     const navigate = useNavigate();
     const [confirmation, setConfirmation] = useState("");
+    const [photoFile, setPhotoFile] = useState(null);
+    const [profilePicture, setProfilePicture] = useState(null);
+
 
     const handleConfitmationChange = (e) => {
         setConfirmation(e.target.value);
@@ -53,6 +56,13 @@ const ProfilePage = () => {
             const data = await response.json();
             data.user.password = '******';
             setUserData(data);
+
+            console.log(data);
+
+            setProfilePicture(data.profilePicture);
+
+            console.log(profilePicture);
+
         } catch (error) {
             console.error('Error during fetching user data:', error);
         }
@@ -202,12 +212,46 @@ const ProfilePage = () => {
         ));
     };
 
+    const handleFileChange = (event) => {
+        setPhotoFile(event.target.files[0]);
+    }
+
+    const handleAddPhotoClick = async () => {
+        if(!photoFile) {
+            alert("Please select a file to upload.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", photoFile);
+
+
+        try {
+            const response = await fetch('/api/account/upload-photo', {
+                method: 'POST',
+                body: formData,
+            });
+
+
+            if (!response.ok) {
+                const errorText = await response.text();  
+                console.error('Response Error:', errorText);  
+                throw new Error('Failed to upload photo');
+            }
+            alert("Photo uploaded successfully!");
+        } catch (error) {
+            console.error('Error during photo upload:', error);
+            alert("Error uploading photo");
+        }
+    };
+
     return (
         <div className="container">
             {isLoggedIn ? (
                 <>
                     <h2 className="mt-4">Account details:</h2>
                     <div className="profile__component">
+                        <div className="profile__component__grid">
                         <table>
                             <tbody>
                                 <tr>
@@ -358,6 +402,14 @@ const ProfilePage = () => {
                                 <button className="btn btn-primary" onClick={handleEditClick}>Edit</button>
                             </div>
                         )}
+                        <div className="edit-button-container">
+                            <button className="btn btn-primary" onClick={handleAddPhotoClick}>Add photo</button>
+                            <input type="file" onChange={handleFileChange} />
+                        </div>
+                        </div>
+                        <div>
+                            <img src={"data:image/jpeg;base64," + userData.user.profilePicture} alt="Profile" style={{ width: '140px', height: 'auto' }} />
+                        </div>
                     </div>
                 </>
             ) : (
