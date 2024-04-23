@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class User : IdentityUser
 {
@@ -9,4 +10,7 @@ public class User : IdentityUser
     public string? ResetPasswordCode { get; set; }
     public DateTime? ResetPasswordCodeExpireTime { get; set; }
     public ICollection<Category>? UserCategories { get; set; }
+
+    [Column(TypeName = "varbinary(max)")]
+    public byte[]? ProfilePicture { get; set; }
 }
