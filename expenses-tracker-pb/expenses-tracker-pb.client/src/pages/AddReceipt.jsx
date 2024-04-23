@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { showSuccessAlert, showFailedAlert, showWarningAlert } from "../components/ToastifyAlert";
+import { showSuccessAlert, showWarningAlert } from "../components/ToastifyAlert";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -31,13 +31,14 @@ const AddReceipt = () => {
     };
 
     const handleUpload = async () => {
-        if (!selectedFile) {
-            showFailedAlert('You have to choose an image.');
+        if (!selectedFile || !fileName) {
+            showWarningAlert('You have to choose a file and provide a name.');
             return;
         }
 
         const formData = new FormData();
         formData.append('file', selectedFile);
+        formData.append('fileName', fileName);
 
         try {
             const response = await fetch("/api/receipt/upload", {
@@ -48,28 +49,27 @@ const AddReceipt = () => {
             if (response.ok) {
                 if (response.headers.get("content-type").includes("application/json")) {
                     const result = await response.json();
-                    alert('Plik został pomyślnie przesłany.');
-                    console.log('Ścieżka do pliku:', result.path);
+                    console.log('File path:', result.path);
                 } else {
                     const text = await response.text();
-                    console.error('Odpowiedź nie jest JSON:', text);
+                    console.error('Response is not JSON:', text);
                 }
                 setSelectedFile(null);
                 setPreviewImage(null);
+                setFileName("");
+                showSuccessAlert('File has been successfully uploaded.');
             } else {
-                console.error('Wystąpił błąd podczas przesyłania pliku.');
-                alert('Wystąpił błąd podczas przesyłania pliku.');
+                console.error('An error occurred while uploading the file.');
+                alert('An error occurred while uploading the file.');
             }
 
         } catch (error) {
-            console.error('Błąd:', error);
+            console.error('Error:', error);
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-
     };
 
     return (
@@ -93,7 +93,7 @@ const AddReceipt = () => {
 
                     <div className="col-md-6 mb-3">
                         <label htmlFor="lastName" className="form-label">
-                            Chose an image:
+                            Choose an image:
                         </label>
                         <input
                             className="form-control"
@@ -109,12 +109,12 @@ const AddReceipt = () => {
                         </label> <br />
                         {previewImage && <img src={previewImage} alt="Preview" style={{ maxWidth: '300px', marginBottom: '20px', maxHeight: '500px' }} />}
                     </div>
-                    <button className="btn btn-primary" onClick={handleUpload}>Upload</button>
+                    <button type="button" className="btn btn-primary" onClick={handleUpload}>Upload</button>
                 </div>
             </form>
+            <ToastContainer />
         </div>
     );
 };
 
 export default AddReceipt;
-

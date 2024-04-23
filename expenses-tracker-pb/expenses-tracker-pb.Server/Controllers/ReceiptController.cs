@@ -1,80 +1,68 @@
 ﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Drive.v3;
 using Google.Apis.Services;
-using Google.Apis.Storage.v1;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.IO;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Route("api/receipt")]
+[Route("api/receipt/upload")]
 public class ReceiptController : ControllerBase
 {
-	private const string ProjectName = "My First Project";
+	private static string[] Scopes = { DriveService.Scope.Drive };
+	private static string ApplicationName = "Google Drive API";
+	private static string ServiceAccountKeyPath = "C:\\Users\\pczyz\\Desktop\\credentials.json";
 
-	[HttpPost("upload")]
-	public async Task<IActionResult> UploadFile([FromForm] IFormFile file)
+	[HttpPost]
+	public async Task<IActionResult> Upload([FromForm] string fileName, [FromForm] IFormFile file)
 	{
 		if (file == null || file.Length == 0)
 		{
-			return BadRequest("Plik nie został przesłany.");
+			return BadRequest("No file uploaded.");
 		}
 
 		try
 		{
-			var clientId = "";
-			var clientSecret = "";
-			var scopes = new[] { @"https://www.googleapis.com/auth/devstorage.full_control" };
+			Console.WriteLine($"Received file: {file.FileName}");
 
-			var clientSecrets = new ClientSecrets
+			GoogleCredential credential;
+			using (var stream = new FileStream(ServiceAccountKeyPath, FileMode.Open, FileAccess.Read))
 			{
-				ClientId = clientId,
-				ClientSecret = clientSecret
-			};
-
-			var cts = new CancellationTokenSource();
-			var userCredential = await GoogleWebAuthorizationBroker.AuthorizeAsync(clientSecrets, scopes, "czyzia06@gmail.com", cts.Token);
-
-			var service = new StorageService(new BaseClientService.Initializer
-			{
-				HttpClientInitializer = userCredential,
-				ApplicationName = "Expenses Tracker"
-			});
-
-			var newBucket = new Google.Apis.Storage.v1.Data.Bucket()
-			{
-				Name = "nazwa_twojego_kubełka"
-			};
-
-			var newBucketRequest = service.Buckets.Insert(newBucket, ProjectName);
-			await newBucketRequest.ExecuteAsync();
-
-			var bucketsRequest = service.Buckets.List(ProjectName);
-			var bucketsResponse = await bucketsRequest.ExecuteAsync();
-			var buckets = bucketsResponse.Items;
-
-			var bucketToUpload = buckets.FirstOrDefault()?.Name;
-
-			var newObject = new Google.Apis.Storage.v1.Data.Object()
-			{
-				Bucket = bucketToUpload,
-				Name = "some-file-" + new Random().Next(1, 666)
-			};
-
-			using (var fileStream = file.OpenReadStream())
-			{
-				var uploadRequest = service.Objects.Insert(newObject, bucketToUpload, fileStream, "image/png");
-				await uploadRequest.UploadAsync();
+				credential = GoogleCredential.FromStream(stream)
+					.CreateScoped(Scopes);
 			}
 
-			return Ok(new { message = "Plik został pomyślnie przesłany." });
+			var service = new DriveService(new BaseClientService.Initializer()
+			{
+				HttpClientInitializer = credential,
+				ApplicationName = ApplicationName,
+			});
+
+			var fileMetadata = new Google.Apis.Drive.v3.Data.File()
+			{
+				Name = fileName,
+				Parents = new List<string> { "1I1d5Qvrqntmiy9QyVgTaTrzSXrlHQriW" }, // ID folderu docelowego
+			};
+
+			using (var memoryStream = new MemoryStream())
+			{
+				await file.CopyToAsync(memoryStream);
+				var fileStream = new MemoryStream(memoryStream.ToArray());
+
+				var request = service.Files.Create(fileMetadata, fileStream, file.ContentType);
+				request.Fields = "id";
+				var response = request.Upload();
+				var uploadedFile = request.ResponseBody;
+
+				return Ok($"File uploaded successfully. File ID: {uploadedFile.Id}");
+			}
 		}
 		catch (Exception ex)
 		{
-			return StatusCode(500, "Wystąpił błąd podczas przesyłania pliku.");
+			Console.WriteLine($"Error uploading file: {ex.Message}. Stack Trace: {ex.StackTrace}");
+			return StatusCode(500, $"Error uploading file: {ex.Message}. Stack Trace: {ex.StackTrace}");
 		}
 	}
 }
-
