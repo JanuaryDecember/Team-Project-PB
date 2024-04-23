@@ -7,7 +7,7 @@ public class User : IdentityUser
     public ICollection<Wallet> Wallets { get; set; }
 
     // Field for authentication throw email
-    public bool? EmailTwoFactorAuthenticationEnabled {  get; set; }
+    public bool EmailTwoFactorAuthenticationEnabled {  get; set; }
     public string? EmailTwoFactorAuthenticationCode { get; set; }
     public DateTime? EmailTwoFactorAuthenticationExpiryTime { get; set; }
     public DateTime? LastEmailTwoFactorAuthenticationCodeSent { get; set; }
