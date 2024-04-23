@@ -64,6 +64,7 @@ public class AccountController : ControllerBase
             return Unauthorized("Invalid credentials.");
         }
 
+        // Checking google authorization
         if (user.TwoFactorEnabled && cred.AuthKey == null)
         {
             return StatusCode(202, "Two-Factor Authentication");
@@ -78,6 +79,56 @@ public class AccountController : ControllerBase
                 return Unauthorized("Invalid credentials");
             }
         }
+        // Validating email authorization
+        if (user.EmailTwoFactorAuthenticationEnabled && cred.EmailAuthorizationCode == null)
+        {
+            // Check if user already sent request recently
+            TimeSpan roznica = DateTime.Now - user.LastEmailTwoFactorAuthenticationCodeSent.GetValueOrDefault();
+            if (roznica.TotalMinutes <= 1)
+            {
+
+                return Ok(new { message = "Too many request, try later" });
+            }
+            // Generate code
+            string code = "";
+            const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+            Random random = new Random();
+            for (int i = 0; i < 10; i++)
+            {
+                code += validChars[random.Next(0, validChars.Length)];
+            }
+            // Save code and expiry time
+            user.EmailTwoFactorAuthenticationCode = code;
+            user.EmailTwoFactorAuthenticationExpiryTime = DateTime.Now.AddMinutes(5);
+            user.LastEmailTwoFactorAuthenticationCodeSent = DateTime.Now;
+
+            // Save data to database
+            _dbContext.Update(user);
+            _dbContext.SaveChanges();
+
+            //Send email
+            _emailSender.SendTwoFactorAuthenticationCode(user.Email, user.EmailTwoFactorAuthenticationCode);
+
+            return StatusCode(202, "Email Authentication");
+
+        }
+        else if (user.EmailTwoFactorAuthenticationEnabled && cred.EmailAuthorizationCode != null)
+        {
+            bool isValid = false;
+            if (user.EmailTwoFactorAuthenticationCode == cred.EmailAuthorizationCode 
+                && user.EmailTwoFactorAuthenticationExpiryTime.GetValueOrDefault().CompareTo(DateTime.Now) >0)
+            {
+                isValid = true; 
+            }
+ 
+            if (!isValid)
+            {
+                return Unauthorized("Invalid credentials");
+            }
+        }
+
+
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = GenerateRandomKey();
@@ -746,16 +797,18 @@ public class AccountController : ControllerBase
 
     public class Credentials
     {
-        public Credentials(string login, string password, string? authKey)
+        public Credentials(string login, string password, string? authKey, string? emailAuthorizationCode)
         {
             Login = login;
             Password = password;
             AuthKey = authKey;
+            EmailAuthorizationCode = emailAuthorizationCode;
         }
 
         public string Login { get; set; }
         public string Password { get; set; }
         public string? AuthKey { get; set; }
+        public string? EmailAuthorizationCode { get; set; }
     }
 
     public class UserModelForRegistration
