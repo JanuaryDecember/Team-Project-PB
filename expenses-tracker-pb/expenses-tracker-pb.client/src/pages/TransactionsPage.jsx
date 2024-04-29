@@ -516,7 +516,7 @@ const TransactionList = () => {
                 <div className="col-md-6">
                 {transactions.length > 0 && showChart && (transactionType === "expenditure" || transactionType === "all") && (
                     <>
-                        <ExpensesChart walletId={walletId} transactions={transactions} />
+                            <ExpensesChart transactions={transactions} categories={categories} findCategoryName={findCategoryName} />
                     </>
                     )}
                 </div>

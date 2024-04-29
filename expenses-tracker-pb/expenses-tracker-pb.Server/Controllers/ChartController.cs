@@ -64,29 +64,4 @@ public class ChartController : Controller
         return new JsonResult(categoryExpenses);
     }
     
-    [HttpGet("GetExpensesChart")]
-    public async Task<IActionResult> GetExpensesChart()
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
-        if (user == null)
-            return NotFound();
-
-        List<Category> expenditureCategories = await _dbContext.Categories
-            .Where(x => (x.Type == CategoryType.Expenditure) && (x.UserId == user.Id || x.UserId == null))
-            .ToListAsync();
-
-        Dictionary<string, double> categoryExpenses = new Dictionary<string, double>();
-        foreach (Category category in expenditureCategories)
-        {
-            double totalExpense = await _dbContext.Expenditures
-                .Where(e => e.CategoryId == category.Id)
-                .SumAsync(e => e.Amount);
-
-            categoryExpenses.Add(category.Name, totalExpense);
-        }
-
-        return new JsonResult(categoryExpenses);
-    }
-
 }
