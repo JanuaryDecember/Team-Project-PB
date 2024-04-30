@@ -4,7 +4,8 @@ import Chart1 from '../components/AccountTrafficChart';
 import Chart2 from '../components/CategoriesChart';
 
 const DashboardPage = () => {
-    const user = localStorage.getItem('user');
+    const storedUser = localStorage.getItem('user');
+    const user = storedUser ? JSON.parse(storedUser) : null;
     const navigate = useNavigate();
 
     useEffect(() => {
