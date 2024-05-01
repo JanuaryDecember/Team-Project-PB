@@ -97,9 +97,7 @@
     height: 600px;
 }
 
-.navbar-nav__profile-button {
-    margin-right:20px;
-}
+
 
 /*Profile*/
 .profile__component {
@@ -174,5 +172,22 @@ label {
     background-color: #ffc107; 
     padding: 3px 6px; 
     border-radius: 5px; 
+}
+
+.navbar-profile-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 20px;
+    margin-left: 5px;
+}
+
+.navbar-profile-img-placeholder {
+    width: 30px;
+    height: 30px;
+    background-color: #ccc;
+    border-radius: 50%;
+    margin-right: 15px;
 }
 

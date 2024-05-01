@@ -1,4 +1,3 @@
-import 'bootstrap/dist/js/bootstrap.js';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -8,7 +7,6 @@ import './../styles/Site.css';
 
 const RootElement = () => {
     const navigate = useNavigate();
-
     const location = useLocation();
     const [user, setUser] = useState(null);
     const isUserLogged = localStorage.getItem('token') !== null;
@@ -23,10 +21,28 @@ const RootElement = () => {
             setUser({ token });
         }
 
+        console.log('Loaded user data:', savedUser); 
+
         if (savedUser) {
-            setUser(JSON.parse(savedUser));
+            const parsedUser = JSON.parse(savedUser);
+            console.log('Parsed user data:', parsedUser); 
+            setUser(parsedUser);
         }
     }, []);
+
+    const renderProfile = () => {
+        console.log("Profile Picture:", user?.profilePicture);
+        return (
+            <div className="navbar-profile">
+                {user?.profilePicture ? (
+                    <img src={`data:image/jpeg;base64,${user.profilePicture}`} alt="Profile" className="navbar-profile-img" />
+                ) : (
+                    <img src="https://img.redro.pl/fototapety/ikona-wektor-profilu-uzytkownika-700-146325654.jpg" alt="Default Profile" className="navbar-profile-img" />
+                )}
+            </div>
+        );
+    };
+
 
     const handleNotifyClick = async () => {
         try {
@@ -152,9 +168,12 @@ const RootElement = () => {
                                     <button className="nav-link" onClick={handleNotifyClick}><i className="bi bi-bell-fill"></i></button>
                                 </li>
                                 <li className="nav-item">
-                                    <Link className="nav-link" to="/profile">Profile</Link>
+                                    <Link className="nav-link" to="/profile">
+                                        {user && user.firstName ? user.firstName : "Profile"}
+                                    </Link>
                                 </li>
                             </ul>
+                            {renderProfile()}
                             <button className="btn btn-outline-light" onClick={() => handleLogout()}>Logout</button>
                         </>
                     ) : null}
