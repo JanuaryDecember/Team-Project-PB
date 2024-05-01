@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 
 const TwoFactorAuthentication = () => {
     const [TwoFactorStatus, setTwoFactorStatus] = useState(null);
+    const [EmailAuthenticationStatus, setEmailAuthenticationStatus] = useState(null);
     const [googleAuthKey, setGoogleAuthKey] = useState('');
     const navigate = useNavigate();
     const [isLoggedIn, setIsLoggedIn] = useState(true);
     const [alertMessage, setAlertMessage] = useState("");
+    const [emailAuthenticationAlertMessage, setEmailAuthenticationAlertMessage] = useState("");
 
 
     const activateTwoFactor = async (status) => {
@@ -114,6 +116,98 @@ const TwoFactorAuthentication = () => {
         }
     };
 
+    const updateEmailAuthenticationStatus = (status) => {
+        const spinner = document.querySelector('.status-info .spinner-border');
+        if (status != null) {
+            if (spinner)
+                spinner.remove();
+
+            if (status === true) {
+                document.getElementsByClassName('email-authentication-status-info')[0].innerHTML = "<div class=\"h5 text-success\">Enabled</div>";
+            }
+            else if (status === false) {
+                document.getElementsByClassName('email-authentication-status-info')[0].innerHTML = "<div class=\"h5 text-danger\">Disabled</div>";
+            }
+        }
+    };
+
+    const sendEmailAuthenticationCode = async () => {
+        try {
+            const response = await fetch('/api/account/sendEmailAuthenticationCode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setEmailAuthenticationAlertMessage(data.message);
+                console.log(data.message);
+            } else {
+                throw new Error('Failed to fetch data');
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+
+    const enableEmailAuthentication = async () => {
+        try {
+            const response = await fetch('/api/account/enableEmailAuthentication', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setEmailAuthenticationAlertMessage(data.message);
+
+                setEmailAuthenticationStatus(true);
+                updateEmailAuthenticationStatus(true);
+            } else {
+                throw new Error('Failed to fetch data');
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+
+    const disableEmailAuthentication = async () => {
+        try {
+            const emailAuthCode = document.getElementById('emailAuthCode').value;
+
+            const data = {
+                emailAuthenticationCode: emailAuthCode
+            };
+
+            const response = await fetch('/api/account/disableEmailAuthentication', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                setEmailAuthenticationStatus(false);
+                updateEmailAuthenticationStatus(false);
+                const data = await response.json();
+                setEmailAuthenticationAlertMessage(data.message);
+            }
+            else if(response.status === 401) {
+                const data = await response.json();
+                setEmailAuthenticationAlertMessage(data.message);
+            }
+            else {
+                throw new Error('Failed to fetch data');
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+
+
+
     const fetchTwoFactorStatus = async () => {
         try {
             const response = await fetch('/api/account/GetTwoFactorStatus', {
@@ -179,6 +273,7 @@ const TwoFactorAuthentication = () => {
         };
         checkUserLogin();
         fetchTwoFactorStatus();
+        fetchEmailAuthenticationStatus();
     }, [navigate]);
 
     useEffect(() => {
@@ -191,11 +286,36 @@ const TwoFactorAuthentication = () => {
         }
     }, [isLoggedIn, navigate]);
 
+    const fetchEmailAuthenticationStatus = async () => {
+        try {
+            const response = await fetch('/api/account/getEmailAuthenticationStatus', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setEmailAuthenticationStatus(data.emailAuthentication);
+                updateEmailAuthenticationStatus(data.emailAuthentication);
+            } else {
+                throw new Error('Failed to fetch data');
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    };
+
     return (
         <div className="container mt-5">
-            <div className="row">
+            <div className="row text-center">
                 <h1>Two-Factor Authentication</h1>
-            </div> <hr></hr>
+            </div>  <hr></hr>
+
+
+            <div className="row">
+                <h2>Google Authenticator</h2>
+            </div> <hr style={{ border: "1px dashed black" }}></hr>
             <div className="row mb-2">
                 <div className="col h4">
                     Status
@@ -205,7 +325,7 @@ const TwoFactorAuthentication = () => {
                         <span className="visually-hidden">Loading...</span>
                     </div>
                 </div>
-            </div> <hr></hr>
+            </div> <hr style={{ border: "1px dashed black" }}></hr>
             {!TwoFactorStatus ? (
                 <div className="row mb-2">
                     <div className="col-2">
@@ -248,6 +368,58 @@ const TwoFactorAuthentication = () => {
                     {alertMessage}
                 </div>
             )}
+             <hr></hr>
+            <div className="row">
+                <h2>Email</h2>
+            </div> <hr style={{ border: "1px dashed black" }}></hr>
+            <div className="row mb-2">
+                <div className="col h4">
+                    Status
+                </div>
+                <div className="col-8 email-authentication-status-info">
+                    <div className="spinner-border" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div> <hr style={{ border: "1px dashed black" }}></hr>
+
+            {!EmailAuthenticationStatus ? (
+                ""
+            ) : (
+                <div className="row mb-2">
+                    <div>
+                        <p>Your Two-Factor Authentication is currently active.</p>
+                        <p>To disable, please follow these steps:</p>
+                        <ol>
+                            <li>Send email with code</li>
+                            <li>Enter this code on the website to confirm</li>
+                        </ol>
+                    </div>
+                </div>
+            )}
+
+
+            <div className="row mt-4">
+                {EmailAuthenticationStatus ? (
+                    <div className="col h4">
+                        <input type="text" className="form-control" placeholder="enter code" id="emailAuthCode"></input>
+                    </div>
+                ) :
+                    ("")
+                }
+                <div className="col-8 status-info">
+                    <input className="btn btn-dark" type="button" value={!EmailAuthenticationStatus ? ("Enable") : ("Disable")} onClick={!EmailAuthenticationStatus ? (enableEmailAuthentication) : (disableEmailAuthentication)}></input>
+                    <input className="btn btn-dark m-2" type="button" value="Send code" onClick={(sendEmailAuthenticationCode)}></input>
+                </div>
+            </div>
+            <div className="row mt-4" id="activation-alert">
+            </div>
+            {emailAuthenticationAlertMessage !== "" && (
+                <div className="alert alert-info" role="alert">
+                    {emailAuthenticationAlertMessage}
+                </div>
+            )}
+
         </div>
     );
 };

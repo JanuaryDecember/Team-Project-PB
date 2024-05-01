@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+
 public class Budget
 {
     [Key]
@@ -10,6 +11,8 @@ public class Budget
 
     [StringLength(250)]
     public string Name { get; set; }
+
+    public User Owner { get; set; }
 
     private double _totalIncome;
     public double TotalIncome
@@ -40,11 +43,6 @@ public class Budget
     }
     public double RemainingBalance => TotalIncome - TotalExpenditure;
 
-    public ICollection<Wallet> Wallets { get; set; }
-    public ICollection<BudgetCategory> BudgetCategories { get; set; }
-
-    public Budget()
-    {
-        BudgetCategories = new List<BudgetCategory>();
-    }
+    public Wallet Wallet { get; set; }
+    public BudgetCategory BudgetCategory { get; set; }
 }

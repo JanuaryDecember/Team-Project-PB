@@ -135,14 +135,14 @@ const RootElement = () => {
                             <li className="nav-item">
                                 <Link className="nav-link" to="/budget">Budget</Link>
                             </li>
+                            <li className="nav-item">
+                                <Link className="nav-link" to="/addReceipt">Add receipt</Link>
+                            </li>
                         </ul>) :
                         (
                             <ul className="navbar-nav me-auto mt-2 mt-lg-0">
                                 <li className="nav-item">
                                     <Link className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} to="/" aria-current="page">Home <span className="visually-hidden">(current)</span></Link>
-                                </li>
-                                <li className="nav-item">
-                                    <Link className="nav-link" to="/addReceipt">Add receipt</Link>
                                 </li>
                             </ul>)}
                     {isUserLogged ? (
@@ -188,7 +188,7 @@ const RootElement = () => {
                     } else {
                         return (
                             <>No obligations with upcoming due dates found.</>
-                        ); 
+                        );
                     }
                 })}
                 <button className="btn btn-danger" onClick={() => setModalIsOpen(false)}>Close</button>
