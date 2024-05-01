@@ -78,7 +78,7 @@ public class ETDbContext : DbContext
         modelBuilder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
         modelBuilder.Entity<IdentityRole>().ToTable("Roles");
 
-        modelBuilder.Entity<Category>().HasData(
+       /* modelBuilder.Entity<Category>().HasData(
             new Category
             {
                 Id = 1,
@@ -107,7 +107,7 @@ public class ETDbContext : DbContext
                 IsDefault = false
             }
         );
-
+       */
         modelBuilder.Entity<BudgetCategory>().HasData(
             new BudgetCategory{
                 Id = 1,

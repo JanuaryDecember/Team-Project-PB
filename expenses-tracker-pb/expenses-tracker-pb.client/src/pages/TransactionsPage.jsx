@@ -513,7 +513,7 @@ const TransactionList = () => {
                 </div>
             )}
             <div className="row my-3">
-                {showChart && transactionType === "all" && (
+                {transactions.length > 0 && showChart && transactionType === "all" && (
                     <>
                         <TransactionsChart transactions={transactions} totalIncomes={totalIncomes} totalExpenditures={totalExpenditures} />
                         <h3 style={{ fontSize: '22px', textAlign: 'center', marginBottom: '20px' }}> Remaining Amount: <span style={{ color: 'lightgreen', fontSize: '22px' }}>{remainingAmount}</span></h3>

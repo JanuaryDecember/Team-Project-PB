@@ -829,6 +829,48 @@ public class AccountController : ControllerBase
         public string Email { get; set; }
         public string Password { get; set; }
     }
+
+    [HttpPost("upload-photo")]
+    public async Task<IActionResult> UploadPhoto(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("Please upload a valid file.");
+        }
+
+        if (!file.ContentType.Contains("image/jpeg") && !file.ContentType.Contains("image/png"))
+        {
+            return BadRequest("Unsupported file type.");
+        }
+
+        if (file.Length > 5 * 1024 * 1024)
+        {
+            return BadRequest("File too large.");
+        }
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        using (var memoryStream = new MemoryStream())
+        {
+            await file.CopyToAsync(memoryStream);
+
+            user.ProfilePicture = memoryStream.ToArray();
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                return Ok("Profile picture updated successfully.");
+            }
+            else
+            {
+                return BadRequest("Could not update profile picture.");
+            }
+        }
+    }
 }
 
 public class WalletRequest
