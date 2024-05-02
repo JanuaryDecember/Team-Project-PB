@@ -128,8 +128,6 @@ public class AccountController : ControllerBase
             }
         }
 
-
-
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = GenerateRandomKey();
 
@@ -380,6 +378,179 @@ public class AccountController : ControllerBase
     private static byte[] ConvertSecretToBytes(string secret, bool secretIsBase32) =>
        secretIsBase32 ? Base32Encoding.ToBytes(secret) : Encoding.UTF8.GetBytes(secret);
 
+    // Security question authentication
+    [Authorize]
+    [HttpPost("enableSecurityQuestionAuthentication")]
+    public async Task<IActionResult> enableSecurityQuestionAuthentication()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.Include(x => x.SecurityQuestion).FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) 
+            {
+                return NotFound("User not found"); 
+            }
+
+            if (user.SecurityQuestion == null)
+            {
+                string requestBody;
+                using (var reader = new System.IO.StreamReader(Request.Body))
+                {
+                    requestBody = await reader.ReadToEndAsync();
+                }
+                dynamic data = JObject.Parse(requestBody);
+
+                string securityQuestion = data.securityQuestion;
+                string securityQuestionAnswer = data.securityQuestionAnswer;
+
+                if (!(await _dbContext.SecurityQuestions.AnyAsync(x => x.Question == securityQuestion)))
+                {
+                    return Unauthorized(new { message = "Security question with this id does not exist" });
+                }
+
+                user.SecurityQuestionAnswer = securityQuestionAnswer;
+                user.SecurityQuestion = _dbContext.SecurityQuestions.FirstOrDefault(x => x.Question == securityQuestion);
+                _dbContext.Update(user);
+                _dbContext.SaveChanges();
+
+                return Ok(new { message = "Verification enabled" });
+
+            }
+            else
+            {
+                return Ok(new { message = "Verification is already enabled" });
+            }
+        }
+        catch(Exception e)
+        {
+            return StatusCode(500, "Error:" + e.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpPost("disableSecurityQuestionAuthentication")]
+    public async Task<IActionResult> disableSecurityQuestionAuthentication()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.Include(x => x.SecurityQuestion).FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            if (user.SecurityQuestion != null)
+            {
+                string requestBody;
+
+                using (var reader = new System.IO.StreamReader(Request.Body))
+                {
+                    requestBody = await reader.ReadToEndAsync();
+                }
+                dynamic data = JObject.Parse(requestBody);
+
+                string securityQuestionAnswer = data.securityQuestionAnswer;
+
+
+                if (user.SecurityQuestionAnswer != securityQuestionAnswer)
+                {
+                    return Unauthorized(new { message = "Answer is not correct" });
+                }
+
+                user.SecurityQuestionAnswer = null;
+                user.SecurityQuestion = null;
+                _dbContext.Update(user);
+                _dbContext.SaveChanges();
+
+                return Ok(new { message = "Verification disable" });
+
+            }
+            else
+            {
+                return Ok(new { message = "Verification is already disabled" });
+            }
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, "Error:" + e.Message);
+        }
+    }
+
+    [HttpGet("getSecurityQuestions")]
+    public async Task<JsonResult> getSecurityQuestions()
+    {
+        try
+        {
+            var questions = await _dbContext.SecurityQuestions.ToListAsync();
+
+            return new JsonResult(questions);
+        }
+        catch (Exception ex)
+        {
+            return new JsonResult(Unauthorized("Error:" + ex.Message));
+        }
+    }
+
+    [Authorize]
+    [HttpGet("getSecurityQuestionsStatus")]
+    public async Task<IActionResult> getSecurityQuestionsStatus()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.Include(x => x.SecurityQuestion).FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                var status = (user.SecurityQuestion != null) ? true : false;
+
+                return Ok(new { securityQuestionStatus = status });
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpGet("getUserSecurityQuestion")]
+    public async Task<IActionResult> getUserSecurityQuestion()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.Include(x => x.SecurityQuestion).FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                if (user.SecurityQuestion != null)
+                {
+                    return Ok(new { securityQuestion = user.SecurityQuestion.Question });
+                }
+                else
+                {
+                    return NotFound("Question not found");
+                }
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
     // Email authentication
     [Authorize]
     [HttpPost("disableEmailAuthentication")]
@@ -605,6 +776,7 @@ public class AccountController : ControllerBase
             return StatusCode(500, "Error:" + ex.Message);
         }
     }
+
     [Authorize]
     [HttpPost("enableTwoFactor")]
     public async Task<IActionResult> enableTwoFactor()
@@ -689,7 +861,6 @@ public class AccountController : ControllerBase
             return StatusCode(500, "Error:" + ex.Message);
         }
     }
-
     [HttpGet("GetProfilePageData")]
     [Authorize]
     public async Task<IActionResult> GetProfilePageData()
@@ -712,7 +883,6 @@ public class AccountController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return userId;
     }
-
     [HttpPost("user")]
     public IActionResult IsUserLogged()
     {
@@ -723,7 +893,6 @@ public class AccountController : ControllerBase
         }
         return Ok();
     }
-
     [HttpPost("UpdateProfilePageData")]
     [Authorize]
     public async Task<IActionResult> UpdateProfilePageData([FromBody] UserUpdateModel updatedUserData)
@@ -794,7 +963,6 @@ public class AccountController : ControllerBase
         [JsonProperty("password")]
         public string Password { get; set; }
     }
-
     public class Credentials
     {
         public Credentials(string login, string password, string? authKey, string? emailAuthorizationCode)
@@ -810,7 +978,6 @@ public class AccountController : ControllerBase
         public string? AuthKey { get; set; }
         public string? EmailAuthorizationCode { get; set; }
     }
-
     public class UserModelForRegistration
     {
         public UserModelForRegistration(string firstName, string lastName, string username, string email, string password)
@@ -829,7 +996,6 @@ public class AccountController : ControllerBase
         public string Email { get; set; }
         public string Password { get; set; }
     }
-
     [HttpPost("upload-photo")]
     public async Task<IActionResult> UploadPhoto(IFormFile file)
     {

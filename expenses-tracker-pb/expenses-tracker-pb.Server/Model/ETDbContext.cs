@@ -1,4 +1,5 @@
 ﻿using expenses_tracker_api.Model;
+using expenses_tracker_pb.Server.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,7 @@ public class ETDbContext : DbContext
     public DbSet<RepayEntry> RepayEntries { get; set; }
     public DbSet<Budget> Budgets { get; set; }
     public DbSet<BudgetCategory> BudgetCategories { get; set; }
+    public DbSet<SecurityQuestion> SecurityQuestions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -77,6 +79,25 @@ public class ETDbContext : DbContext
 
         modelBuilder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
         modelBuilder.Entity<IdentityRole>().ToTable("Roles");
+
+        // Default security questions
+        modelBuilder.Entity<SecurityQuestion>().HasData(
+            new SecurityQuestion
+            {
+                Id = 1,
+                Question = "What city were you born in?",
+            },
+            new SecurityQuestion
+            {
+                Id = 2,
+                Question = "What is your oldest sibling’s middle name?",
+            }, 
+            new SecurityQuestion
+            {
+                Id = 3,
+                Question = "What was the make and model of your first car?",
+            }
+        );
 
        /* modelBuilder.Entity<Category>().HasData(
             new Category
