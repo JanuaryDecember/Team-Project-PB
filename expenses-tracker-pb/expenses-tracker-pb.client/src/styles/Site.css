@@ -176,3 +176,6 @@ label {
     border-radius: 5px; 
 }
 
+.Toastify__toast-body{
+    white-space: pre-line;
+}

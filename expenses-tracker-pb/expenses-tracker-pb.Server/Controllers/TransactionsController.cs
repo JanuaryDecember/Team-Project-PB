@@ -213,6 +213,12 @@ public class TransactionsController : ControllerBase
                 return BadRequest("You chose invalid category. Please try again after refreshing the page.");
             }
 
+            var budget = await _dbContext.Budgets.FirstOrDefaultAsync(b => b.BudgetCategory == category && b.Wallet == wallet);
+            if (budget != null)
+            {
+                budget.TotalExpenditure += expenditure.Amount;
+            }
+
             expenditure.Wallet = wallet;
             expenditure.Category = category;
             wallet.AccountBalance -= expenditure.Amount;
@@ -999,28 +1005,6 @@ public class TransactionsController : ControllerBase
     [HttpGet("allCategories")]
     public async Task<string> GetAllCategories()
     {
-        var Clothes = _dbContext.Categories.FirstOrDefault(c => c.Name == "Clothes");
-        var Food = _dbContext.Categories.FirstOrDefault(c => c.Name == "Food");
-        var Work = _dbContext.Categories.FirstOrDefault(c => c.Name == "Work");
-
-        if (Clothes == null)
-        {
-            Clothes = new Category { Name = "Clothes", Type = CategoryType.Expenditure, IsDefault = true };
-            _dbContext.Categories.Add(Clothes);
-        }
-
-        if (Food == null)
-        {
-            Food = new Category { Name = "Food", Type = CategoryType.Expenditure, IsDefault = true };
-            _dbContext.Categories.Add(Food);
-        }
-
-        if (Work == null)
-        {
-            Work = new Category { Name = "Work", Type = CategoryType.Income, IsDefault = true };
-            _dbContext.Categories.Add(Work);
-        }
-        await _dbContext.SaveChangesAsync();
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
         if (user == null)

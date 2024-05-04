@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { showSuccessAlert, showFailedAlert } from './ToastifyAlert';
+import { showSuccessAlert, showFailedAlert, showWarningAlert} from './ToastifyAlert';
 
 const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
     const navigate = useNavigate();
@@ -101,6 +101,36 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
         return foundCategory ? foundCategory.Id : 0;
     };
 
+    const checkBudget = async () => {
+        try {
+            const response = await fetch(`/api/budget/checkBudget`, {
+                credentials: 'include',
+            });
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+    
+            const data = await response.json();
+    
+            if (data && data.length > 0) {
+                console.log("Budgets with negative balance:");
+                console.log(data);
+                data.forEach(budget => {
+                    showWarningAlert(`Exceeded Budget!
+                    Budget: ${budget.name}
+                    Total Expenditure: ${budget.remainingBalance}
+                    Category: ${budget.budgetCategoryName}`);
+                });
+            } else {
+                console.log("No budgets have a negative total expenditure.");
+            }
+        } catch (error) {
+            console.error('Error during checking budget:', error);
+        }
+    };
+    
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         let newCat = { name: customCategory, type: '' };
@@ -179,6 +209,7 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                     setConfirmationVisible(false);
                 }, 1500);
                 showSuccessAlert('Transaction added successfully!');
+                checkBudget();
                 document.getElementById('helper').click();
             } else {
                 console.error(response);

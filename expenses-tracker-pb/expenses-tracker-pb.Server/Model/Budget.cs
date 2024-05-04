@@ -44,5 +44,5 @@ public class Budget
     public double RemainingBalance => TotalIncome - TotalExpenditure;
 
     public Wallet Wallet { get; set; }
-    public BudgetCategory BudgetCategory { get; set; }
+    public Category BudgetCategory { get; set; }
 }

@@ -15,7 +15,6 @@ public class ETDbContext : DbContext
     public DbSet<Obligation> Obligations { get; set; }
     public DbSet<RepayEntry> RepayEntries { get; set; }
     public DbSet<Budget> Budgets { get; set; }
-    public DbSet<BudgetCategory> BudgetCategories { get; set; }
     public DbSet<SecurityQuestion> SecurityQuestions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -91,7 +90,7 @@ public class ETDbContext : DbContext
             {
                 Id = 2,
                 Question = "What is your oldest sibling’s middle name?",
-            }, 
+            },
             new SecurityQuestion
             {
                 Id = 3,
@@ -99,44 +98,11 @@ public class ETDbContext : DbContext
             }
         );
 
-       /* modelBuilder.Entity<Category>().HasData(
-            new Category
-            {
-                Id = 1,
-                Name = "NewCategory1",
-                Type = CategoryType.Expenditure,
-                UserId = null,
-                IconId = 1,
-                IsDefault = false
-            },
-            new Category
-            {
-                Id = 2,
-                Name = "NewCategory2",
-                Type = CategoryType.Expenditure,
-                UserId = null,
-                IconId = 2,
-                IsDefault = false
-            },
-            new Category
-            {
-                Id = 3,
-                Name = "NewCategory3",
-                Type = CategoryType.Income,
-                UserId = null,
-                IconId = 3,
-                IsDefault = false
-            }
-        );
-       */
-        modelBuilder.Entity<BudgetCategory>().HasData(
-            new BudgetCategory{
-                Id = 1,
-                Name = "Budget Category 1",
-                AllocatedAmount = 0,
-                SpentAmount = 0,
-            }
-        );
+        modelBuilder.Entity<Category>().HasData(
+             new Category { Id = 1, Name = "Clothes", Type = CategoryType.Expenditure, IsDefault = true, IconId = 1, UserId = null },
+             new Category { Id = 2, Name = "Food", Type = CategoryType.Expenditure, IsDefault = true, IconId = 2, UserId = null },
+             new Category { Id = 3, Name = "Work", Type = CategoryType.Income, IsDefault = true, IconId = 3, UserId = null }
+         );
 
         base.OnModelCreating(modelBuilder);
     }

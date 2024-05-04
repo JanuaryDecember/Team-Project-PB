@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
+import { showSuccessAlert, showFailedAlert, showWarningAlert} from '../components/ToastifyAlert';
 
 
 function Budget() {
@@ -49,6 +50,7 @@ function Budget() {
           fetchBudgets();
           getAllUserWallets();
           getAllBudgetCategories();
+          checkBudget();
         }
       } catch (error) {
         console.error("Error importing wallets:", error.message);
@@ -56,6 +58,35 @@ function Budget() {
     };
     isUserLogged();
   }, []);
+
+  const checkBudget = async () => {
+    try {
+        const response = await fetch(`/api/budget/checkBudget`, {
+            credentials: 'include',
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            console.log("Budgets with negative balance:");
+            console.log(data);
+            data.forEach(budget => {
+                showWarningAlert(`Exceeded Budget!
+                Budget: ${budget.name}
+                Total Expenditure: ${budget.remainingBalance}
+                Category: ${budget.budgetCategoryName}`);
+            });
+        } else {
+            console.log("No budgets have a negative total expenditure.");
+        }
+    } catch (error) {
+        console.error('Error during checking budget:', error);
+    }
+};
 
   const getAllBudgetCategories = async () => {
     try {
@@ -143,7 +174,7 @@ function Budget() {
           totalIncome: newBudgetTotalIncome,
           totalExpenditure: newBudgetTotalExpenditure,
           walletId: newBudgetWalletId,
-          budgetCategoryId: newBudgetBudgetCategoryId,
+          categoryId: newBudgetBudgetCategoryId,
       }
       console.log(budgetDetails);
       console.log(JSON.stringify(budgetDetails));
@@ -355,7 +386,7 @@ function Budget() {
                   </div>
                   <div className="mb-3">
                     <label htmlFor="budgetCategory" className="form-label">Budget Category</label>
-                    <select className="form-select" id="budgetCategory" value={selectedBudget.budgetCategory} onChange={(e) => setSelectedBudget({ ...selectedBudget, budgetCategoryId: e.target.value })} required>
+                    <select className="form-select" id="budgetCategory" value={selectedBudget.budgetCategory} onChange={(e) => setSelectedBudget({ ...selectedBudget, categoryId: e.target.value })} required>
                       <option disabled>Select Budget Category</option>
                       {budgetCategoriesList && budgetCategoriesList.map((category, index) => (
                         <option key={index} value={category.id}>{category.name}</option>
