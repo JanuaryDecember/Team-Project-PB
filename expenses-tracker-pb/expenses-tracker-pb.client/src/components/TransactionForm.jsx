@@ -22,6 +22,49 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
     const [useCategoryInput, setUseCategoryInput] = useState(false);
     const [customCategory, setCustomCategory] = useState('');
     const [information, setInformation] = useState('');
+    const [selectedFile, setSelectedFile] = useState(null);
+
+    const handleFileChange = (event) => {
+        setSelectedFile(event.target.files[0]);
+    };
+
+    const handleButtonClick = async () => {
+        if (!selectedFile) {
+            alert('Please select a file.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('imageFile', selectedFile);
+
+        try {
+            document.getElementById("fill-button").setAttribute("disabled", true)
+            const response = await fetch('/api/transaction/getTotalPrice', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                const priceMatch = result.content.match(/(\d+(\.\d+)?)/);
+                const price = priceMatch ? parseFloat(priceMatch[0]) : null;
+                setNewTransaction(prevTransaction => ({
+                    ...prevTransaction,
+                    amount: price,
+                }));
+                alert("Price decoded is: " + price);
+                document.getElementById("fill-button").removeAttribute("disabled")
+            } else {
+                document.getElementById("fill-button").removeAttribute("disabled")
+                console.error('Failed to fetch');
+            }
+        } catch (error) {
+            document.getElementById("fill-button").removeAttribute("disabled")
+            console.error('Error:', error);
+        }
+    };
+
+
 
     const handleCustomCategoryChange = (event) => {
         setCustomCategory(event.target.value);
@@ -320,6 +363,14 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                             ))}
                             </select>
                         )}
+                        {transactionType === 'expenditure' ?
+                            <div className="d-flex flex-column w-50">
+                                <button id="fill-button" className="btn btn-primary" onClick={handleButtonClick}>
+                                    <p>Fill amount with receipt photo</p>
+                                </button>
+                                <input className="mt-2" type="file" accept="image/*" onChange={handleFileChange}  />
+                            </div>
+                            : ""}
                         {information && <div className="error">{information}</div>}
                         {formError && <div className="col-md-12 error">{formError}</div>}
                         <button type="submit" className="btn btn-primary col-12">
