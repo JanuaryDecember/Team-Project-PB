@@ -30,9 +30,12 @@ const LandingPage = () => {
 
             const loggedInUser = {
                 token,
+                firstName: userData.user.firstName,
                 username: userData.user.userName,
+                profilePicture: userData.user.profilePicture
             };
             localStorage.setItem('user', JSON.stringify(loggedInUser));
+            console.log(loggedInUser);
         }
         localStorage.setItem('token', token);
         navigate("/dashboard");

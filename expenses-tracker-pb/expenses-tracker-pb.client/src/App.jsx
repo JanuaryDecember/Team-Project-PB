@@ -17,7 +17,7 @@ import ProfilePage from './pages/ProfilePage'
 import PasswordRecoveryPage from './pages/PasswordRecoveryPage'
 import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashbordPage';
-import AddReceipt from './pages/AddReceipt';
+import MyReceipt from './pages/MyReceipt';
 import BudgetPage from './pages/BudgetPage';
 
 const App = () => {
@@ -41,7 +41,7 @@ const App = () => {
                 <Route path="/categories" element={<ManageCategories />} />
                 <Route path="/profile" element={<ProfilePage />}></Route>
                 <Route path="/passwordRecovery" element={<PasswordRecoveryPage />}></Route>
-                <Route path="/addReceipt" element={<AddReceipt />}></Route>
+                <Route path="/myReceipt" element={<MyReceipt />}></Route>
                 <Route path="/budget" element={<BudgetPage />}></Route>
             </Routes>
         </Router>

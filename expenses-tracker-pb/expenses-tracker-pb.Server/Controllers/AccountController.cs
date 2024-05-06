@@ -64,6 +64,7 @@ public class AccountController : ControllerBase
             return Unauthorized("Invalid credentials.");
         }
 
+        // Checking google authorization
         if (user.TwoFactorEnabled && cred.AuthKey == null)
         {
             return StatusCode(202, "Two-Factor Authentication");
@@ -73,6 +74,54 @@ public class AccountController : ControllerBase
             TwoFactorAuthenticator TwoFacAuth = new TwoFactorAuthenticator();
             bool isValid = TwoFacAuth.ValidateTwoFactorPIN(user.GoogleAuthKey, cred.AuthKey, TimeSpan.FromSeconds(15));
 
+            if (!isValid)
+            {
+                return Unauthorized("Invalid credentials");
+            }
+        }
+        // Validating email authorization
+        if (user.EmailTwoFactorAuthenticationEnabled && cred.EmailAuthorizationCode == null)
+        {
+            // Check if user already sent request recently
+            TimeSpan roznica = DateTime.Now - user.LastEmailTwoFactorAuthenticationCodeSent.GetValueOrDefault();
+            if (roznica.TotalMinutes <= 1)
+            {
+
+                return Ok(new { message = "Too many request, try later" });
+            }
+            // Generate code
+            string code = "";
+            const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+            Random random = new Random();
+            for (int i = 0; i < 10; i++)
+            {
+                code += validChars[random.Next(0, validChars.Length)];
+            }
+            // Save code and expiry time
+            user.EmailTwoFactorAuthenticationCode = code;
+            user.EmailTwoFactorAuthenticationExpiryTime = DateTime.Now.AddMinutes(5);
+            user.LastEmailTwoFactorAuthenticationCodeSent = DateTime.Now;
+
+            // Save data to database
+            _dbContext.Update(user);
+            _dbContext.SaveChanges();
+
+            //Send email
+            _emailSender.SendTwoFactorAuthenticationCode(user.Email, user.EmailTwoFactorAuthenticationCode);
+
+            return StatusCode(202, "Email Authentication");
+
+        }
+        else if (user.EmailTwoFactorAuthenticationEnabled && cred.EmailAuthorizationCode != null)
+        {
+            bool isValid = false;
+            if (user.EmailTwoFactorAuthenticationCode == cred.EmailAuthorizationCode 
+                && user.EmailTwoFactorAuthenticationExpiryTime.GetValueOrDefault().CompareTo(DateTime.Now) >0)
+            {
+                isValid = true; 
+            }
+ 
             if (!isValid)
             {
                 return Unauthorized("Invalid credentials");
@@ -138,7 +187,8 @@ public class AccountController : ControllerBase
             Email = user.Email,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            Wallets = new List<Wallet>()
+            Wallets = new List<Wallet>(),
+            EmailTwoFactorAuthenticationEnabled = false
         };
 
         var result = await _userManager.CreateAsync(newUser, user.Password);
@@ -201,7 +251,7 @@ public class AccountController : ControllerBase
             byte[] bytes = new byte[6];
             random.NextBytes(bytes);
             string code = Convert.ToBase64String(bytes).Substring(0, 8);
-            _emailSender.SendEmail(existingUser.Email, code);
+            _emailSender.sendPasswordRecoveryCode(existingUser.Email, code);
             existingUser.ResetPasswordCode = code;
             existingUser.ResetPasswordCodeExpireTime = DateTime.Now.AddMinutes(1);
             await _dbContext.SaveChangesAsync();
@@ -328,6 +378,347 @@ public class AccountController : ControllerBase
     private static byte[] ConvertSecretToBytes(string secret, bool secretIsBase32) =>
        secretIsBase32 ? Base32Encoding.ToBytes(secret) : Encoding.UTF8.GetBytes(secret);
 
+    // Security question authentication
+    [Authorize]
+    [HttpPost("enableSecurityQuestionAuthentication")]
+    public async Task<IActionResult> enableSecurityQuestionAuthentication()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.Include(x => x.SecurityQuestion).FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) 
+            {
+                return NotFound("User not found"); 
+            }
+
+            if (user.SecurityQuestion == null)
+            {
+                string requestBody;
+                using (var reader = new System.IO.StreamReader(Request.Body))
+                {
+                    requestBody = await reader.ReadToEndAsync();
+                }
+                dynamic data = JObject.Parse(requestBody);
+
+                string securityQuestion = data.securityQuestion;
+                string securityQuestionAnswer = data.securityQuestionAnswer;
+
+                if (!(await _dbContext.SecurityQuestions.AnyAsync(x => x.Question == securityQuestion)))
+                {
+                    return Unauthorized(new { message = "Security question with this id does not exist" });
+                }
+
+                user.SecurityQuestionAnswer = securityQuestionAnswer;
+                user.SecurityQuestion = _dbContext.SecurityQuestions.FirstOrDefault(x => x.Question == securityQuestion);
+                _dbContext.Update(user);
+                _dbContext.SaveChanges();
+
+                return Ok(new { message = "Verification enabled" });
+
+            }
+            else
+            {
+                return Ok(new { message = "Verification is already enabled" });
+            }
+        }
+        catch(Exception e)
+        {
+            return StatusCode(500, "Error:" + e.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpPost("disableSecurityQuestionAuthentication")]
+    public async Task<IActionResult> disableSecurityQuestionAuthentication()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.Include(x => x.SecurityQuestion).FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            if (user.SecurityQuestion != null)
+            {
+                string requestBody;
+
+                using (var reader = new System.IO.StreamReader(Request.Body))
+                {
+                    requestBody = await reader.ReadToEndAsync();
+                }
+                dynamic data = JObject.Parse(requestBody);
+
+                string securityQuestionAnswer = data.securityQuestionAnswer;
+
+
+                if (user.SecurityQuestionAnswer != securityQuestionAnswer)
+                {
+                    return Unauthorized(new { message = "Answer is not correct" });
+                }
+
+                user.SecurityQuestionAnswer = null;
+                user.SecurityQuestion = null;
+                _dbContext.Update(user);
+                _dbContext.SaveChanges();
+
+                return Ok(new { message = "Verification disable" });
+
+            }
+            else
+            {
+                return Ok(new { message = "Verification is already disabled" });
+            }
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, "Error:" + e.Message);
+        }
+    }
+
+    [HttpGet("getSecurityQuestions")]
+    public async Task<JsonResult> getSecurityQuestions()
+    {
+        try
+        {
+            var questions = await _dbContext.SecurityQuestions.ToListAsync();
+
+            return new JsonResult(questions);
+        }
+        catch (Exception ex)
+        {
+            return new JsonResult(Unauthorized("Error:" + ex.Message));
+        }
+    }
+
+    [Authorize]
+    [HttpGet("getSecurityQuestionsStatus")]
+    public async Task<IActionResult> getSecurityQuestionsStatus()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.Include(x => x.SecurityQuestion).FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                var status = (user.SecurityQuestion != null) ? true : false;
+
+                return Ok(new { securityQuestionStatus = status });
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpGet("getUserSecurityQuestion")]
+    public async Task<IActionResult> getUserSecurityQuestion()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.Include(x => x.SecurityQuestion).FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                if (user.SecurityQuestion != null)
+                {
+                    return Ok(new { securityQuestion = user.SecurityQuestion.Question });
+                }
+                else
+                {
+                    return NotFound("Question not found");
+                }
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
+    // Email authentication
+    [Authorize]
+    [HttpPost("disableEmailAuthentication")]
+    public async Task<IActionResult> disableEmailAuthentication()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                if (user.EmailTwoFactorAuthenticationEnabled == true)
+                {
+                    string requestBody;
+                    using (var reader = new System.IO.StreamReader(Request.Body))
+                    {
+                        requestBody = await reader.ReadToEndAsync();
+                    }
+                    dynamic data = JObject.Parse(requestBody);
+                    string emailAuthenticationCode = data.emailAuthenticationCode;
+
+                    
+                    if (user.EmailTwoFactorAuthenticationCode != emailAuthenticationCode ||
+                        user.EmailTwoFactorAuthenticationExpiryTime < DateTime.Now)
+                    {
+                        return Unauthorized(new { message = "Code is not valid or expired" });
+                    }
+
+                    user.EmailTwoFactorAuthenticationEnabled = false;
+                    _dbContext.Update(user);
+                    _dbContext.SaveChanges();
+
+                    return Ok(new { message = "Verification disabled" });
+                    
+                }
+                else
+                {
+                    return Ok(new { message = "Verification is already disabled" });
+                }
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpPost("enableEmailAuthentication")]
+    public async Task<IActionResult> enableEmailAuthentication()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                if (user.EmailTwoFactorAuthenticationEnabled == true)
+                {
+                    
+                    return Ok(new { message = "Verification is already active"});
+                }
+                else{
+                    user.EmailTwoFactorAuthenticationEnabled = true;
+                    _dbContext.Update(user);
+                    _dbContext.SaveChanges();
+
+                    return Ok(new { message = "Verification activated" });
+                }
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpGet("getEmailAuthenticationStatus")]
+    public async Task<IActionResult> getEmailAuthentication()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                return Ok(new { EmailAuthentication = user.EmailTwoFactorAuthenticationEnabled });
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpPost("sendEmailAuthenticationCode")]
+    public async Task<IActionResult> sendEmailAuthenticationCode()
+    {
+        try
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                if (user.EmailTwoFactorAuthenticationEnabled == true)
+                {
+                    // Check if user already sent request recently
+                    TimeSpan roznica = DateTime.Now - user.LastEmailTwoFactorAuthenticationCodeSent.GetValueOrDefault();
+                    if (roznica.TotalMinutes <= 1)
+                    {
+                        
+                        return Ok(new { message = "Too many request, try later" });
+                    }
+                    // Generate code
+                    string code = "";
+                    const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+                    Random random = new Random();
+                    for (int i = 0; i < 10; i++)
+                    {
+                        code += validChars[random.Next(0, validChars.Length)];
+                    }
+                    // Save code and expiry time
+                    user.EmailTwoFactorAuthenticationCode = code;
+                    user.EmailTwoFactorAuthenticationExpiryTime = DateTime.Now.AddMinutes(5);
+                    user.LastEmailTwoFactorAuthenticationCodeSent = DateTime.Now;
+
+                    // Save data to database
+                    _dbContext.Update(user);
+                    _dbContext.SaveChanges();
+
+                    //Send email
+                    _emailSender.SendTwoFactorAuthenticationCode(user.Email,user.EmailTwoFactorAuthenticationCode);
+                    return Ok(new { message = "Email with your code have been sent" });
+                }
+                
+                return Ok(new { message = "Verification is not enable" });
+            }
+            else
+            {
+                return NotFound("User not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error:" + ex.Message);
+        }
+    }
+
+    // -------------------------------------------------------------
     [Authorize]
     [HttpGet("GetTwoFactorStatus")]
     public async Task<IActionResult> GetTwoFactorStatus()
@@ -385,6 +776,7 @@ public class AccountController : ControllerBase
             return StatusCode(500, "Error:" + ex.Message);
         }
     }
+
     [Authorize]
     [HttpPost("enableTwoFactor")]
     public async Task<IActionResult> enableTwoFactor()
@@ -469,7 +861,6 @@ public class AccountController : ControllerBase
             return StatusCode(500, "Error:" + ex.Message);
         }
     }
-
     [HttpGet("GetProfilePageData")]
     [Authorize]
     public async Task<IActionResult> GetProfilePageData()
@@ -492,8 +883,6 @@ public class AccountController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return userId;
     }
-
-
     [HttpPost("user")]
     public IActionResult IsUserLogged()
     {
@@ -504,7 +893,6 @@ public class AccountController : ControllerBase
         }
         return Ok();
     }
-
     [HttpPost("UpdateProfilePageData")]
     [Authorize]
     public async Task<IActionResult> UpdateProfilePageData([FromBody] UserUpdateModel updatedUserData)
@@ -575,21 +963,21 @@ public class AccountController : ControllerBase
         [JsonProperty("password")]
         public string Password { get; set; }
     }
-
     public class Credentials
     {
-        public Credentials(string login, string password, string? authKey)
+        public Credentials(string login, string password, string? authKey, string? emailAuthorizationCode)
         {
             Login = login;
             Password = password;
             AuthKey = authKey;
+            EmailAuthorizationCode = emailAuthorizationCode;
         }
 
         public string Login { get; set; }
         public string Password { get; set; }
         public string? AuthKey { get; set; }
+        public string? EmailAuthorizationCode { get; set; }
     }
-
     public class UserModelForRegistration
     {
         public UserModelForRegistration(string firstName, string lastName, string username, string email, string password)
@@ -607,6 +995,47 @@ public class AccountController : ControllerBase
         public string Username { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
+    }
+    [HttpPost("upload-photo")]
+    public async Task<IActionResult> UploadPhoto(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("Please upload a valid file.");
+        }
+
+        if (!file.ContentType.Contains("image/jpeg") && !file.ContentType.Contains("image/png"))
+        {
+            return BadRequest("Unsupported file type.");
+        }
+
+        if (file.Length > 5 * 1024 * 1024)
+        {
+            return BadRequest("File too large.");
+        }
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+
+        using (var memoryStream = new MemoryStream())
+        {
+            await file.CopyToAsync(memoryStream);
+
+            user.ProfilePicture = memoryStream.ToArray();
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                return Ok("Profile picture updated successfully.");
+            }
+            else
+            {
+                return BadRequest("Could not update profile picture.");
+            }
+        }
     }
 }
 
