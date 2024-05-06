@@ -7,6 +7,8 @@ import { showSuccessAlert, showFailedAlert } from "../components/ToastifyAlert";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import TransactionsChart from "../components/TransactionsChart";
+import ExpensesChart from "../components/ExpensesChart";
+
 
 
 const TransactionList = () => {
@@ -33,8 +35,6 @@ const TransactionList = () => {
     const totalIncomes = transactions.filter(transaction => transaction.TransactionType === "income").reduce((total, transaction) => total + transaction.Amount, 0);
     const totalExpenditures = transactions.filter(transaction => transaction.TransactionType === "expenditure").reduce((total, transaction) => total + transaction.Amount, 0);
     const remainingAmount = totalIncomes - totalExpenditures;
-
-
 
     const handleToggleFilters = () => {
         setShowFilters(!showFilters);
@@ -513,12 +513,21 @@ const TransactionList = () => {
                 </div>
             )}
             <div className="row my-3">
-                {showChart && transactionType === "all" && (
+                <div className="col-md-6">
+                {transactions.length > 0 && showChart && (transactionType === "expenditure" || transactionType === "all") && (
+                    <>
+                            <ExpensesChart transactions={transactions} categories={categories} findCategoryName={findCategoryName} />
+                    </>
+                    )}
+                </div>
+                <div className="col-md-6">
+                {transactions.length > 0 && showChart && transactionType === "all" && (
                     <>
                         <TransactionsChart transactions={transactions} totalIncomes={totalIncomes} totalExpenditures={totalExpenditures} />
-                        <h3 style={{ fontSize: '22px', textAlign: 'center', marginBottom: '20px' }}> Remaining Amount: <span style={{ color: 'lightgreen', fontSize: '22px' }}>{remainingAmount}</span></h3>
+                        <h3 style={{ fontSize: '26px', textAlign: 'center', marginBottom: '20px', marginTop: '-35px' }}> Remaining Amount: <span style={{ color: 'lightgreen', fontSize: '26px' }}>{remainingAmount}</span></h3>
                     </>
-                )}
+                    )}
+                </div>
                 {transactions.map((transaction, i) => (
                     <div
                         key={i}

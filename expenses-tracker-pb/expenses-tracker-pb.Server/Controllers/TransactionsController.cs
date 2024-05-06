@@ -1,6 +1,4 @@
-﻿using iText.Kernel.Pdf;
-using iText.Layout.Element;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -8,11 +6,10 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
-using System.IO;
 using System.Globalization;
-using System.Linq;
 using OfficeOpenXml;
-using PdfSharp.Charting;
+using Azure;
+using Azure.AI.FormRecognizer.DocumentAnalysis;
 
 [ApiController]
 [Route("/api/transaction")]
@@ -23,6 +20,38 @@ public class TransactionsController : ControllerBase
     public TransactionsController(ETDbContext dbContext)
     {
         _dbContext = dbContext;
+    }
+
+    [Authorize]
+    [HttpPost("getTotalPrice")]
+    public async Task<IActionResult> getTotalPrice([FromForm] IFormFile imageFile)
+    {
+        if (imageFile == null || imageFile.Length <= 0)
+        {
+            return BadRequest("No image file sent");
+        }
+        using (var memoryStream = new MemoryStream())
+        {
+            await imageFile.CopyToAsync(memoryStream);
+            byte[] imageData = memoryStream.ToArray();
+
+            // https://www.youtube.com/watch?v=rkJa6vbkMcU
+            string apiKey = "wypełnij se to sam (tutaj key1)";
+            string endpoint = "poradnik w filmiku wyżej";
+            AzureKeyCredential creds = new AzureKeyCredential(apiKey);
+            DocumentAnalysisClient client = new DocumentAnalysisClient(new Uri(endpoint), creds);
+            AnalyzeDocumentOperation operation = await client.AnalyzeDocumentAsync(WaitUntil.Completed, "prebuilt-receipt", new MemoryStream(imageData));
+            AnalyzeResult result = operation.Value;
+            for(int i = 0; i < result.Documents.Count; i++)
+            {
+                AnalyzedDocument document = result.Documents[i];
+                if(document.Fields.TryGetValue("Total", out DocumentField total))
+                { 
+                    return Ok(total);
+                }
+            }
+        }
+        return StatusCode(500, "Error");
     }
 
     [Authorize]
@@ -211,6 +240,12 @@ public class TransactionsController : ControllerBase
             if (category == null || category.Type != CategoryType.Expenditure)
             {
                 return BadRequest("You chose invalid category. Please try again after refreshing the page.");
+            }
+
+            var budget = await _dbContext.Budgets.FirstOrDefaultAsync(b => b.BudgetCategory == category && b.Wallet == wallet);
+            if (budget != null)
+            {
+                budget.TotalExpenditure += expenditure.Amount;
             }
 
             expenditure.Wallet = wallet;
@@ -999,28 +1034,6 @@ public class TransactionsController : ControllerBase
     [HttpGet("allCategories")]
     public async Task<string> GetAllCategories()
     {
-        var Clothes = _dbContext.Categories.FirstOrDefault(c => c.Name == "Clothes");
-        var Food = _dbContext.Categories.FirstOrDefault(c => c.Name == "Food");
-        var Work = _dbContext.Categories.FirstOrDefault(c => c.Name == "Work");
-
-        if (Clothes == null)
-        {
-            Clothes = new Category { Name = "Clothes", Type = CategoryType.Expenditure, IsDefault = true };
-            _dbContext.Categories.Add(Clothes);
-        }
-
-        if (Food == null)
-        {
-            Food = new Category { Name = "Food", Type = CategoryType.Expenditure, IsDefault = true };
-            _dbContext.Categories.Add(Food);
-        }
-
-        if (Work == null)
-        {
-            Work = new Category { Name = "Work", Type = CategoryType.Income, IsDefault = true };
-            _dbContext.Categories.Add(Work);
-        }
-        await _dbContext.SaveChangesAsync();
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
         if (user == null)
