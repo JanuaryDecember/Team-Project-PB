@@ -11,7 +11,7 @@ public class ReceiptController : ControllerBase
 {
 	private static string[] Scopes = { DriveService.Scope.Drive };
 	private static string ApplicationName = "Google Drive API";
-	private static string ServiceAccountKeyPath = "C:\\Users\\pczyz\\Desktop\\credentials.json";
+	private static string ServiceAccountKeyPath = "C:\\Users\\0Xandra\\source\\credentials.json";
 
 	[HttpPost]
 	public async Task<IActionResult> Upload([FromForm] string fileName, [FromForm] IFormFile file)
