@@ -9,7 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<ETDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("EmekConnection")));
+builder.Services.AddDbContext<ETDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("Ola2Connection")));
 
 builder.Services.AddCors();
 
