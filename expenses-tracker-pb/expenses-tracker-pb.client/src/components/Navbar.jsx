@@ -152,7 +152,7 @@ const RootElement = () => {
                                 <Link className="nav-link" to="/budget">Budget</Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link" to="/addReceipt">Add receipt</Link>
+                                <Link className="nav-link" to="/myReceipt">My receipt</Link>
                             </li>
                         </ul>) :
                         (

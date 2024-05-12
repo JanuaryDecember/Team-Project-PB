@@ -70,7 +70,7 @@ const DashboardPage = () => {
                                 <span>Export Data</span>
                             </div>
                         </Link>
-                        <Link to="/" className="link" style={{ minWidth: "25%", margin: "0 5px" }}>
+                        <Link to="/myReceipt" className="link" style={{ minWidth: "25%", margin: "0 5px" }}>
                             <div className="card background-my m-auto text-center">
                                 <img className="icons" src='https://cdn-icons-png.flaticon.com/128/217/217905.png' alt="Receipt Icon" />
                                 <span>My Receipt</span>

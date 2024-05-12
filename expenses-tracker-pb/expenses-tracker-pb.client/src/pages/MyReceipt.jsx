@@ -1,13 +1,32 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { showSuccessAlert, showWarningAlert } from "../components/ToastifyAlert";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const AddReceipt = () => {
+const MyReceipt = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
     const [fileName, setFileName] = useState("");
+    const [folderLink, setFolderLink] = useState(null);
+
+    useEffect(() => {
+        async function fetchFolderLink() {
+            try {
+                const response = await fetch("/api/receipt/userfolder");
+                if (response.ok) {
+                    const link = await response.text();
+                    setFolderLink(link);
+                } else {
+                    console.error('An error occurred while fetching folder link.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        fetchFolderLink();
+    }, []);
+
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
@@ -74,6 +93,16 @@ const AddReceipt = () => {
 
     return (
         <div className='container'>
+            <h2 className="mt-4">My receipt</h2>
+            {folderLink ? (
+                <div>
+                    <a href={folderLink} target="_blank" rel="noopener noreferrer">Open My Folder</a>
+                </div>
+            ) : (
+                <div>
+                    Link does not exist. You need to add some picture!
+                </div>
+            )}
             <h2 className="mt-4">Add receipt</h2>
             <form onSubmit={handleSubmit}>
                 <div className="row">
@@ -117,4 +146,4 @@ const AddReceipt = () => {
     );
 };
 
-export default AddReceipt;
+export default MyReceipt;

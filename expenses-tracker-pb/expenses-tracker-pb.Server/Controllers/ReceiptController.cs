@@ -1,19 +1,55 @@
 ﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
+public class GoogleDriveService
+{
+	public DriveService GetDriveService(string[] scopes, string applicationName, string serviceAccountKeyPath)
+	{
+		return CreateDriveService(scopes, applicationName,serviceAccountKeyPath);
+	}
+	
+	public DriveService CreateDriveService(string[] scopes, string applicationName, string serviceAccountKeyPath)
+	{
+		GoogleCredential credential;
+		using (var stream = new FileStream(serviceAccountKeyPath, FileMode.Open, FileAccess.Read))
+		{
+			credential = GoogleCredential.FromStream(stream)
+				.CreateScoped(scopes);
+		}
+
+		return new DriveService(new BaseClientService.Initializer()
+		{
+			HttpClientInitializer = credential,
+			ApplicationName = applicationName,
+		});
+	}
+
+}
 
 [ApiController]
-[Route("api/receipt/upload")]
+[Route("api/receipt")]
 public class ReceiptController : ControllerBase
 {
-	private static string[] Scopes = { DriveService.Scope.Drive };
-	private static string ApplicationName = "Google Drive API";
-	private static string ServiceAccountKeyPath = "C:\\Users\\0Xandra\\source\\credentials.json";
+	private readonly GoogleDriveService _googleDriveService;
+	private readonly string[] _scopes = { DriveService.Scope.Drive };
+	private readonly string _applicationName = "Google Drive API";
+	private readonly string _uploadAccountKeyPath = "C:\\Users\\pczyz\\Desktop\\credentials.json";
+	private readonly string _viewAccountKeyPath = "C:\\Users\\pczyz\\Desktop\\credentials-view.json";
 
-	[HttpPost]
+	public ReceiptController(GoogleDriveService googleDriveService)
+	{
+		_googleDriveService = googleDriveService;
+	}
+
+	[HttpPost("upload")]
 	public async Task<IActionResult> Upload([FromForm] string fileName, [FromForm] IFormFile file)
 	{
 		if (file == null || file.Length == 0)
@@ -28,25 +64,13 @@ public class ReceiptController : ControllerBase
 			// Pobranie Id użytkownika
 			var folderName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-			GoogleCredential credential;
-			using (var stream = new FileStream(ServiceAccountKeyPath, FileMode.Open, FileAccess.Read))
-			{
-				credential = GoogleCredential.FromStream(stream)
-					.CreateScoped(Scopes);
-			}
-
-			var service = new DriveService(new BaseClientService.Initializer()
-			{
-				HttpClientInitializer = credential,
-				ApplicationName = ApplicationName,
-			});
+			var service = _googleDriveService.GetDriveService(_scopes, _applicationName, _uploadAccountKeyPath);
 
 			var folderId = await FindUserFolder(service, folderName);
 			if (string.IsNullOrEmpty(folderId))
 			{
 				folderId = await CreateUserFolder(service, folderName);
 			}
-
 
 			var fileMetadata = new Google.Apis.Drive.v3.Data.File()
 			{
@@ -126,5 +150,29 @@ public class ReceiptController : ControllerBase
 			throw;
 		}
 	}
+
+	[HttpGet("userfolder")]
+	public async Task<IActionResult> GetUserFolderLink()
+	{
+		try
+		{
+			var folderName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			var service = _googleDriveService.GetDriveService(_scopes, _applicationName, _viewAccountKeyPath);
+			var folderId = await FindUserFolder(service, folderName);
+
+			if (string.IsNullOrEmpty(folderId))
+			{
+				return NotFound("User folder not found.");
+			}
+
+			var folderLink = $"https://drive.google.com/drive/folders/{folderId}";
+			return Ok(folderLink);
+		}
+		catch (Exception ex)
+		{
+			return StatusCode(500, $"Error: {ex.Message}");
+		}
+	}
+
 
 }
