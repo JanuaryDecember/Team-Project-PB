@@ -1,4 +1,5 @@
 ﻿using expenses_tracker_api.Model;
+using expenses_tracker_pb.Server.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +15,7 @@ public class ETDbContext : DbContext
     public DbSet<Obligation> Obligations { get; set; }
     public DbSet<RepayEntry> RepayEntries { get; set; }
     public DbSet<Budget> Budgets { get; set; }
-    public DbSet<BudgetCategory> BudgetCategories { get; set; }
+    public DbSet<SecurityQuestion> SecurityQuestions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -78,44 +79,30 @@ public class ETDbContext : DbContext
         modelBuilder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
         modelBuilder.Entity<IdentityRole>().ToTable("Roles");
 
-        modelBuilder.Entity<Category>().HasData(
-            new Category
+        // Default security questions
+        modelBuilder.Entity<SecurityQuestion>().HasData(
+            new SecurityQuestion
             {
                 Id = 1,
-                Name = "NewCategory1",
-                Type = CategoryType.Expenditure,
-                UserId = null,
-                IconId = 1,
-                IsDefault = false
+                Question = "What city were you born in?",
             },
-            new Category
+            new SecurityQuestion
             {
                 Id = 2,
-                Name = "NewCategory2",
-                Type = CategoryType.Expenditure,
-                UserId = null,
-                IconId = 2,
-                IsDefault = false
+                Question = "What is your oldest sibling’s middle name?",
             },
-            new Category
+            new SecurityQuestion
             {
                 Id = 3,
-                Name = "NewCategory3",
-                Type = CategoryType.Income,
-                UserId = null,
-                IconId = 3,
-                IsDefault = false
+                Question = "What was the make and model of your first car?",
             }
         );
 
-        modelBuilder.Entity<BudgetCategory>().HasData(
-            new BudgetCategory{
-                Id = 1,
-                Name = "Budget Category 1",
-                AllocatedAmount = 0,
-                SpentAmount = 0,
-            }
-        );
+        modelBuilder.Entity<Category>().HasData(
+             new Category { Id = 1, Name = "Clothes", Type = CategoryType.Expenditure, IsDefault = true, IconId = 1, UserId = null },
+             new Category { Id = 2, Name = "Food", Type = CategoryType.Expenditure, IsDefault = true, IconId = 2, UserId = null },
+             new Category { Id = 3, Name = "Work", Type = CategoryType.Income, IsDefault = true, IconId = 3, UserId = null }
+         );
 
         base.OnModelCreating(modelBuilder);
     }

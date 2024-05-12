@@ -63,5 +63,5 @@ public class ChartController : Controller
 
         return new JsonResult(categoryExpenses);
     }
-
+    
 }

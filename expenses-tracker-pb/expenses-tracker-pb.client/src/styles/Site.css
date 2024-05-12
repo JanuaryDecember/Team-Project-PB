@@ -4,7 +4,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    align-items: center;
     transition: all 0.3s;
 }
 
@@ -101,14 +100,23 @@
     margin-right:20px;
 }
 
+
 /*Profile*/
 .profile__component {
+    border-radius: 5px;
+    background-color: #D4D2D5;
+    display: flex;
+    flex-direction: row;
+    gap: 5vh;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.profile__component__grid {
     display: grid;
     grid-template-columns: 15ch 15ch;
     grid-gap: 15px;
     padding: 30px;
-    border-radius: 5px;
-    background-color: #D4D2D5;
 
     & > table,tbody,tr { display: contents;}
 }
@@ -168,3 +176,31 @@ label {
     border-radius: 5px; 
 }
 
+.navbar-profile-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 20px;
+    margin-left: 5px;
+}
+
+.navbar-profile-img-placeholder {
+    width: 30px;
+    height: 30px;
+    background-color: #ccc;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.Toastify__toast-body{
+    white-space: pre-line;
+}
+
+.bg-income {
+    background-color: #B2CCB5;
+}
+
+.bg-expenditure {
+    background-color: #CCB2B2;
+}
