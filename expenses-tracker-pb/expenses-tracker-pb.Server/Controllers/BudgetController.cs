@@ -38,7 +38,7 @@ namespace _2023pz_trrepo.Controllers
         [HttpGet("budgetCategories")]
         public async Task<IActionResult> BudgetCategories()
         {
-            List<BudgetCategory> budgetCategoriesList = await _dbContext.BudgetCategories.ToListAsync();
+            List<Category> budgetCategoriesList = await _dbContext.Categories.Where(x => x.Type == CategoryType.Expenditure).ToListAsync();
             if (budgetCategoriesList.IsNullOrEmpty())
                 return NotFound("Cant find any BudgetCategories!");
 
@@ -76,10 +76,10 @@ namespace _2023pz_trrepo.Controllers
             var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id.Equals(userId));
 
             var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(x => x.Id.Equals(budgetDetails.walletId));
-            var budgetCategory = await _dbContext.BudgetCategories.FirstOrDefaultAsync(x => x.Id.Equals(budgetDetails.budgetCategoryId));
+            var budgetCategory = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Id.Equals(budgetDetails.categoryId));
 
-            if (wallet == null || budgetCategory == null)
-                return BadRequest("Error finding wallet or budget category!");
+            if (wallet == null || budgetCategory == null || user == null)
+                return BadRequest("Error finding wallet, budget category, or user!");
 
             var newBudget = new Budget
             {
@@ -90,7 +90,6 @@ namespace _2023pz_trrepo.Controllers
                 BudgetCategory = budgetCategory,
                 Owner = user,
             };
-
             _dbContext.Budgets.Add(newBudget);
             await _dbContext.SaveChangesAsync();
 
@@ -162,7 +161,7 @@ namespace _2023pz_trrepo.Controllers
                 return NotFound("Budget not found or you do not have permission to edit it.");
 
             var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(x => x.Id.Equals(editedBudget.walletId));
-            var budgetCategory = await _dbContext.BudgetCategories.FirstOrDefaultAsync(x => x.Id.Equals(editedBudget.budgetCategoryId));
+            var budgetCategory = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Id.Equals(editedBudget.categoryId));
 
             budget.Name = editedBudget.name;
             budget.TotalIncome = editedBudget.totalIncome;
@@ -176,13 +175,45 @@ namespace _2023pz_trrepo.Controllers
             return Ok("Budget successfully updated!");
         }
 
+        [HttpGet("checkBudget")]
+        public async Task<IActionResult> checkBudgetForWallet()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return NotFound("User does not exist!");
+
+            var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id.Equals(userId));
+            var budgetList = await _dbContext.Budgets
+                .Include(b => b.Wallet)
+                .Include(b => b.BudgetCategory)
+                .Where(x => x.Owner == user)
+                .ToListAsync();
+
+            if (budgetList == null)
+                return NotFound("No budgets for selected wallet.");
+
+            var negativeBudgets = budgetList.Where(b => b.RemainingBalance < 0)
+            .Select(b => new BudgetDto
+            {
+                Id = b.Id,
+                Name = b.Name,
+                TotalIncome = b.TotalIncome,
+                TotalExpenditure = b.TotalExpenditure,
+                RemainingBalance = b.RemainingBalance,
+                WalletName = b.Wallet.Name,
+                BudgetCategoryName = b.BudgetCategory.Name
+            })
+            .ToList();
+
+            return Ok(negativeBudgets);
+        }
         public class CreateBudgetDto
         {
             public string name { get; set; }
             public double totalIncome { get; set; }
             public double totalExpenditure { get; set; }
             public long walletId { get; set; }
-            public long budgetCategoryId { get; set; }
+            public long categoryId { get; set; }
         }
         public class BudgetDto
         {

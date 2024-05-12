@@ -387,7 +387,14 @@ const ProfilePage = () => {
                                         )}
                                     </td>
                                     <td>
-                                        
+                                        {isEditing ? (
+                                            <div className="edit-button-container">
+                                                <input type="file" onChange={handleFileChange} />
+                                                <button className="btn btn-primary" onClick={handleAddPhotoClick}>Add photo</button>
+                                            </div>
+                                        ) : (
+                                            <></>
+                                        )}        
                                     </td>
                                 </tr>
                             </tbody>
@@ -402,10 +409,7 @@ const ProfilePage = () => {
                                 <button className="btn btn-primary" onClick={handleEditClick}>Edit</button>
                             </div>
                         )}
-                        <div className="edit-button-container">
-                            <button className="btn btn-primary" onClick={handleAddPhotoClick}>Add photo</button>
-                            <input type="file" onChange={handleFileChange} />
-                        </div>
+                        
                         </div>
                         <div>
                             <img src={"data:image/jpeg;base64," + userData.user.profilePicture} alt="Profile" style={{ width: '140px', height: 'auto' }} />

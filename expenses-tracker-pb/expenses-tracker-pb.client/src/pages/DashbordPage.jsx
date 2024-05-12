@@ -2,16 +2,47 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Chart1 from '../components/AccountTrafficChart';
 import Chart2 from '../components/CategoriesChart';
+import { showSuccessAlert, showFailedAlert, showWarningAlert} from '../components/ToastifyAlert';
 
 const DashboardPage = () => {
     const storedUser = localStorage.getItem('user');
     const user = storedUser ? JSON.parse(storedUser) : null;
     const navigate = useNavigate();
 
+
+    const checkBudget = async () => {
+        try {
+            const response = await fetch(`/api/budget/checkBudget`, {
+                credentials: 'include',
+            });
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+    
+            const data = await response.json();
+    
+            if (data && data.length > 0) {
+                console.log("Budgets with negative balance:");
+                console.log(data);
+                data.forEach(budget => {
+                    showWarningAlert(`Exceeded Budget!
+                    Budget: ${budget.name}
+                    Total Expenditure: ${budget.remainingBalance}
+                    Category: ${budget.budgetCategoryName}`);
+                });
+            } else {
+                console.log("No budgets have a negative total expenditure.");
+            }
+        } catch (error) {
+            console.error('Error during checking budget:', error);
+        }
+    };
     useEffect(() => {
         if (user == null) {
             navigate("/");
-        }
+        }else
+            checkBudget();
     }, [navigate]);
     
     return (

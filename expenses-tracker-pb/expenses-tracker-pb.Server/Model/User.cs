@@ -24,6 +24,8 @@ public class User : IdentityUser
     public SecurityQuestion? SecurityQuestion { get; set; }
     public string? SecurityQuestionAnswer { get; set; }
 
+    //[Column(TypeName = "varbinary(max)")]
+    //w postgersql nie ma typu varbinary(max) zamiast tego jest bytea, na potrzeby testów zamieniłem ten kod na bytea
     [Column(TypeName = "varbinary(max)")]
     public byte[]? ProfilePicture { get; set; }
 }

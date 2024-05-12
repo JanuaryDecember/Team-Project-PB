@@ -1,11 +1,9 @@
 ﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.IO;
-using System.Threading.Tasks;
+using System.Security.Claims;
+
 
 [ApiController]
 [Route("api/receipt/upload")]
@@ -13,7 +11,7 @@ public class ReceiptController : ControllerBase
 {
 	private static string[] Scopes = { DriveService.Scope.Drive };
 	private static string ApplicationName = "Google Drive API";
-	private static string ServiceAccountKeyPath = "C:\\Users\\jakub\\Downloads\\credentials.json";
+	private static string ServiceAccountKeyPath = "C:\\Users\\0Xandra\\source\\credentials.json";
 
 	[HttpPost]
 	public async Task<IActionResult> Upload([FromForm] string fileName, [FromForm] IFormFile file)
@@ -26,6 +24,9 @@ public class ReceiptController : ControllerBase
 		try
 		{
 			Console.WriteLine($"Received file: {file.FileName}");
+
+			// Pobranie Id użytkownika
+			var folderName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 			GoogleCredential credential;
 			using (var stream = new FileStream(ServiceAccountKeyPath, FileMode.Open, FileAccess.Read))
@@ -40,10 +41,17 @@ public class ReceiptController : ControllerBase
 				ApplicationName = ApplicationName,
 			});
 
+			var folderId = await FindUserFolder(service, folderName);
+			if (string.IsNullOrEmpty(folderId))
+			{
+				folderId = await CreateUserFolder(service, folderName);
+			}
+
+
 			var fileMetadata = new Google.Apis.Drive.v3.Data.File()
 			{
 				Name = fileName,
-				Parents = new List<string> { "1I1d5Qvrqntmiy9QyVgTaTrzSXrlHQriW" }, // ID folderu docelowego
+				Parents = new List<string> { folderId },
 			};
 
 			using (var memoryStream = new MemoryStream())
@@ -65,4 +73,58 @@ public class ReceiptController : ControllerBase
 			return StatusCode(500, $"Error uploading file: {ex.Message}. Stack Trace: {ex.StackTrace}");
 		}
 	}
+
+	private async Task<string> FindUserFolder(DriveService service, string folderName)
+	{
+		try
+		{
+			var listRequest = service.Files.List();
+			listRequest.Q = $"name = '{folderName}' and mimeType = 'application/vnd.google-apps.folder' and '1I1d5Qvrqntmiy9QyVgTaTrzSXrlHQriW' in parents";
+			var folders = await listRequest.ExecuteAsync();
+
+			if (folders.Files.Any())
+			{
+				Console.WriteLine($"User folder exists. ID: {folders.Files.First().Id}");
+				return folders.Files.First().Id;
+			}
+			else
+			{
+				Console.WriteLine($"User folder does not exist.");
+				return null;
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error finding user folder: {ex.Message}. Stack Trace: {ex.StackTrace}");
+			throw;
+		}
+	}
+	private async Task<string> CreateUserFolder(DriveService service, string folderName)
+	{
+		try
+		{
+			Console.WriteLine($"Creating new user folder");
+
+			var folderMetadata = new Google.Apis.Drive.v3.Data.File()
+			{
+				Name = folderName,
+				MimeType = "application/vnd.google-apps.folder",
+				Parents = new List<string> { "1I1d5Qvrqntmiy9QyVgTaTrzSXrlHQriW" },
+			};
+
+			var request = service.Files.Create(folderMetadata);
+			request.Fields = "id";
+
+			var folder = await request.ExecuteAsync();
+			Console.WriteLine($"New user folder created. ID: {folder.Id}");
+
+			return folder.Id;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error creating user folder: {ex.Message}. Stack Trace: {ex.StackTrace}");
+			throw;
+		}
+	}
+
 }

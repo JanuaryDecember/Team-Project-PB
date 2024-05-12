@@ -11,13 +11,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.AI.FormRecognizer" Version="4.1.0" />
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.0.2" />
     <PackageReference Include="Google.Apis" Version="1.68.0" />
     <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.68.0.3373" />
-    <PackageReference Include="Google.Apis.Storage.v1" Version="1.67.0.3365" />
+    <PackageReference Include="Google.Apis.Storage.v1" Version="1.68.0.3365" />
     <PackageReference Include="GoogleAuthenticator" Version="3.2.0" />
-    <PackageReference Include="itext" Version="8.0.3" />
+    <PackageReference Include="itext" Version="8.0.4" />
     <PackageReference Include="iTextSharp" Version="5.5.13.3" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy">
@@ -47,6 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="wwwroot\" />
     <Folder Include="wwwroot\uploads\" />
   </ItemGroup>
