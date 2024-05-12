@@ -93,7 +93,7 @@ const TransactionList = () => {
         setSelectedCategory(null);
         setMinValue(null);
         setMaxValue(null);
-        setContainsString(null);;
+        setContainsString(null);
         setCaseSensitive(null);
 
         document.getElementById("categorySelect").value = "";
@@ -376,6 +376,7 @@ const TransactionList = () => {
                     walletId={walletId}
                     onSubmit={(newTransactionData) => {
                         handleAddTransaction(newTransactionData);
+                        setShowForm(false);
                     }}
                     onCancel={() => setShowForm(false)}
                 />
