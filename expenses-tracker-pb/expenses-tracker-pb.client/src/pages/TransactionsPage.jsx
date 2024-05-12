@@ -539,7 +539,7 @@ const TransactionList = () => {
                         className="col my-3"
                         style={{ minWidth: "30%" }}
                     >
-                        <div className="card h-100 w-100 text-center">
+                        <div className={`card h-100 w-100 text-center ${getCardBackgroundColor(transaction.TransactionType)}`}>
                             <h2 className="w-75">{transaction.Title}</h2>
                             <h5>{transaction.Amount} PLN</h5>
                             <p>{findCategoryName(transaction.CategoryId)}</p>
