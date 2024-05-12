@@ -173,6 +173,16 @@ const TransactionList = () => {
         return foundCategory ? foundCategory.Name : "Unknown";
     };
 
+    const getCardBackgroundColor = (transactionType) => {
+        if (transactionType === 'income') {
+            return 'bg-income';
+        } else if (transactionType === 'expenditure') {
+            return 'bg-expenditure';
+        } else {
+            return '';
+        }
+    };
+
     async function handleModalSubmit() {
         const newTransactionData = {
             id: transaction.Id,
