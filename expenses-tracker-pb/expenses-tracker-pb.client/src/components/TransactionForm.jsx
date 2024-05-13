@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { showSuccessAlert, showFailedAlert, showWarningAlert} from './ToastifyAlert';
+import { showSuccessAlert, showFailedAlert, showWarningAlert } from './ToastifyAlert';
+import ProgressBar from 'react-bootstrap/ProgressBar';
 
 const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
     const navigate = useNavigate();
@@ -23,6 +24,8 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
     const [customCategory, setCustomCategory] = useState('');
     const [information, setInformation] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
+    const [loading, setLoading] = useState(false); 
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     const handleFileChange = (event) => {
         setSelectedFile(event.target.files[0]);
@@ -37,11 +40,17 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
         const formData = new FormData();
         formData.append('imageFile', selectedFile);
 
+        setLoading(true);
+
         try {
             document.getElementById("fill-button").setAttribute("disabled", true)
             const response = await fetch('/api/transaction/getTotalPrice', {
                 method: 'POST',
                 body: formData,
+                onProgress: (event) => {
+                    const progress = Math.round((event.loaded / event.total) * 100);
+                    setUploadProgress(progress);
+                },
             });
 
             if (response.ok) {
@@ -52,16 +61,21 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                     ...prevTransaction,
                     amount: price,
                 }));
-                alert("Price decoded is: " + price);
+                showSuccessAlert("Price decoded is: " + price);
                 document.getElementById("fill-button").removeAttribute("disabled")
             } else {
                 document.getElementById("fill-button").removeAttribute("disabled")
+                showFailedAlert('Failed to fetch');
                 console.error('Failed to fetch');
             }
         } catch (error) {
             document.getElementById("fill-button").removeAttribute("disabled")
             console.error('Error:', error);
+        } finally {
+            setLoading(false);
+            setUploadProgress(0);
         }
+
     };
 
 
@@ -268,6 +282,7 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
 
     return (
         <div>
+
             <div className="mb-3">
                 <button
                     className={`btn ${transactionType === 'income' ? 'btn-grey' : 'btn-secondary'} mx-1`}
@@ -282,11 +297,30 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                     Expenditure
                 </button>
             </div>
+            {loading && (
+                <div className="progress d-flex justify-content-center" style={{ width: '50%', height:'20px', margin: 'auto', marginBottom: '15px' }}>
+                    <div
+                        className="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                        role="progressbar"
+                        aria-valuenow="100"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        style={{ width: '100%' }}
+                    >Decoding data...</div>
+                </div>
+            )}
             {formVisible && (
-                <div className="card w-50 h-auto m-auto mb-5 p-3 pt-3">
+                <div className="card w-50 h-auto m-auto mb-5 p-3 pt-3" >
                     <form onSubmit={handleSubmit} className="row w-100 g-3">
                         <h5>Add New Transaction</h5>
-
+                        {transactionType === 'expenditure' ?
+                            <div className="d-flex flex-column w-50 ">
+                                <button id="fill-button" className="btn btn-primary" onClick={handleButtonClick}>
+                                    <p>Fill amount with receipt photo</p>
+                                </button>
+                                <input className="mt-2" type="file" accept="image/*" onChange={handleFileChange} />
+                            </div>
+                            : ""}
                         <input
                             type="text"
                             className="form-control"
@@ -363,14 +397,7 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                             ))}
                             </select>
                         )}
-                        {transactionType === 'expenditure' ?
-                            <div className="d-flex flex-column w-50">
-                                <button id="fill-button" className="btn btn-primary" onClick={handleButtonClick}>
-                                    <p>Fill amount with receipt photo</p>
-                                </button>
-                                <input className="mt-2" type="file" accept="image/*" onChange={handleFileChange}  />
-                            </div>
-                            : ""}
+
                         {information && <div className="error">{information}</div>}
                         {formError && <div className="col-md-12 error">{formError}</div>}
                         <button type="submit" className="btn btn-primary col-12">
