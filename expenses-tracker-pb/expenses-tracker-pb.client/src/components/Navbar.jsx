@@ -16,22 +16,27 @@ const RootElement = () => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         const savedUser = localStorage.getItem('user');
-
         if (token) {
             setUser({ token });
         }
 
-        console.log('Loaded user data:', savedUser); 
 
         if (savedUser) {
             const parsedUser = JSON.parse(savedUser);
-            console.log('Parsed user data:', parsedUser); 
             setUser(parsedUser);
         }
-    }, []);
+    }, [user]);
 
     const renderProfile = () => {
-        console.log("Profile Picture:", user?.profilePicture);
+        if (!user) {
+            const savedUser = localStorage.getItem('user');
+
+            if (savedUser) {
+                const parsedUser = JSON.parse(savedUser);
+                setUser(parsedUser);
+            }
+        }
+
         return (
             <div className="navbar-profile">
                 {user?.profilePicture ? (
