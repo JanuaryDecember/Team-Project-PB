@@ -1,0 +1,46 @@
+{
+	"Polish":
+	{
+		"Utils" :{
+			"ButtonClose":"Zamknij",
+			"Language": "Język",
+			"ChooseLang": "Wybierz język",
+			"Login": "Zaloguj",
+			"Logout": "Wyloguj"
+		},
+		"Navbar" :{
+			"Home": "Strona główna",
+			"Export": "Wyeksportuj portfel",
+			"Import": "Zaimportuj portfel",
+			"Wallets": "Portfele",
+			"TwoFactor": "Weryfikacja dwu-etapowa",
+			"Report": "Raport",
+			"Categories": "Kategorie",
+			"Budget": "Budżet",
+			"Receipts": "Paragony",
+			"Modal": {"Title": "Aktualne zobowiązania", "None": "Nie znaleziono żadnych zobowiązań finansowych!"}
+		}
+	},
+	"English":
+	{
+		"Utils" :{
+			"ButtonClose":"Close",
+			"Language": "Language",
+			"ChooseLang": "Choose language",
+			"Login": "Login",
+			"Logout": "Logout"
+		},
+		"Navbar" :{
+			"Home": "Home",
+			"Export": "Export wallet",
+			"Import": "Import wallet",
+			"Wallets": "Wallets",
+			"TwoFactor": "Two-step verification",
+			"Report": "Reports",
+			"Categories": "Categories",
+			"Budget": "Budgets",
+			"Receipts": "Receipts",
+			"Modal": {"Title": "Current obligations", "None": "No obligations with upcoming due dates found!"}
+		}
+	}
+}

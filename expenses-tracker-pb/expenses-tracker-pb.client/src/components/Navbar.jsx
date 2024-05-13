@@ -4,8 +4,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Badge } from 'react-bootstrap';
 import Modal from 'react-modal';
 import './../styles/Site.css';
+import translation from './../assets/translation.json'
 
-const RootElement = () => {
+const RootElement = (props) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [user, setUser] = useState(null);
@@ -25,7 +26,7 @@ const RootElement = () => {
             const parsedUser = JSON.parse(savedUser);
             setUser(parsedUser);
         }
-    }, [user]);
+    }, []);
 
     const renderProfile = () => {
         if (!user) {
@@ -119,12 +120,23 @@ const RootElement = () => {
         setUser(null);
         navigate("/");
     };
+    const navbarLang = translation[props.language]?.Navbar;
 
+    function btnclick(lang) {
+        switch (lang) {
+            case "English":
+                props.setLanguage("English");
+                break;
+            case "Polish":
+                props.setLanguage("Polish");
+                break;
+        }
+    }
 
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark w-100">
             <div className="container">
-                <Link className="navbar-brand" to={isUserLogged ? "/dashboard" : "/"}>Expenses tracker application</Link>
+                <Link className="navbar-brand" to={isUserLogged ? "/dashboard" : "/"}>Expenses tracker</Link>
                 <button className="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId"
                     aria-expanded="false" aria-label="Toggle navigation">
                     <span className="navbar-toggler-icon"></span>
@@ -133,37 +145,37 @@ const RootElement = () => {
                     {isUserLogged ? (
                         <ul className="navbar-nav me-auto mt-2 mt-lg-0">
                             <li className="nav-item">
-                                <Link className="nav-link" to="/dashboard" aria-current="page">Home <span className="visually-hidden">(current)</span></Link>
+                                <Link className="nav-link" to="/dashboard" aria-current="page">{navbarLang?.Home}<span className="visually-hidden">(current)</span></Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link" to="/export">Export</Link>
+                                <Link className="nav-link" to="/export">{navbarLang?.Export}</Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link" to="/import">Import</Link>
+                                <Link className="nav-link" to="/import">{navbarLang?.Import}</Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link" to="/wallet">Wallet</Link>
+                                <Link className="nav-link" to="/wallet">{navbarLang?.Wallets}</Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link" to="/account/settings/twoFactorAuthentication">TwoFactor</Link>
+                                <Link className="nav-link" to="/account/settings/twoFactorAuthentication">{navbarLang?.TwoFactor}</Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link" to="/report">Report</Link>
+                                <Link className="nav-link" to="/report">{navbarLang?.Report}</Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link" to="/categories">Categories</Link>
+                                <Link className="nav-link" to="/categories">{navbarLang?.Categories}</Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link" to="/budget">Budget</Link>
+                                <Link className="nav-link" to="/budget">{navbarLang?.Budget}</Link>
                             </li>
                             <li className="nav-item">
-                                <Link className="nav-link" to="/myReceipt">My receipt</Link>
+                                <Link className="nav-link" to="/myReceipt">{navbarLang?.Receipts}</Link>
                             </li>
                         </ul>) :
                         (
                             <ul className="navbar-nav me-auto mt-2 mt-lg-0">
                                 <li className="nav-item">
-                                    <Link className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} to="/" aria-current="page">Home <span className="visually-hidden">(current)</span></Link>
+                                    <Link className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} to="/" aria-current="page">{navbarLang?.Home}<span className="visually-hidden">(current)</span></Link>
                                 </li>
                             </ul>)}
                     {isUserLogged ? (
@@ -179,9 +191,10 @@ const RootElement = () => {
                                 </li>
                             </ul>
                             {renderProfile()}
-                            <button className="btn btn-outline-light" onClick={() => handleLogout()}>Logout</button>
+                            <button className="btn btn-outline-light" onClick={() => handleLogout()}>{translation[props.language]?.Utils.Logout}</button>
                         </>
                     ) : null}
+                    <button className="btn btn-outline-light w-auto mx-2" data-bs-toggle="modal" data-bs-target="#languageModal">{translation[props.language]?.Utils.Language}</button>
                 </div>
             </div>
             <Modal
@@ -190,7 +203,7 @@ const RootElement = () => {
                 contentLabel="Notifications Modal"
                 className="notification-modal"
             >
-                <h2>Current obligations</h2>
+                <h2>{translation[props.language]?.Navbar.Modal.Title}</h2>
                 {obligationsAlertMessage.trim().split('\n').map((line, index) => {
                     const elements = line.split(', ');
                     if (elements.length >= 4) {
@@ -211,12 +224,29 @@ const RootElement = () => {
                         );
                     } else {
                         return (
-                            <>No obligations with upcoming due dates found.</>
+                            <>{translation[props.language]?.Navbar.Modal.None}</>
                         );
                     }
                 })}
-                <button className="btn btn-danger" onClick={() => setModalIsOpen(false)}>Close</button>
+                <button className="btn btn-danger" onClick={() => setModalIsOpen(false)}>{translation[props.language]?.Utils.ButtonClose}</button>
             </Modal>
+            <div class="modal fade" id="languageModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">{translation[props.language]?.Utils.ChooseLang}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <button className="btn btn-primary" onClick={() => btnclick("Polish")}>Polski</button>
+                            <button className="btn btn-primary" onClick={() => btnclick("English")}>English</button>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{translation[props.language]?.Utils.ButtonClose}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </nav>
     );
 };

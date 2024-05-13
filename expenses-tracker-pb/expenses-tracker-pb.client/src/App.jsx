@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import RegisterForm from './pages/RegisterFormPage';
 import Navbar from './components/Navbar';
+import "bootstrap/dist/js/bootstrap.min.js"
 
 import WalletPage from './pages/WalletPage';
 import WalletActionsPage from './pages/WalletActionsPage';
@@ -21,16 +22,20 @@ import MyReceipt from './pages/MyReceipt';
 import BudgetPage from './pages/BudgetPage';
 
 const App = () => {
+    const [language, setLanguage] = useState("Polish")
     return (
         <Router>
-            <Navbar />
+            <Navbar
+                language={language}
+                setLanguage={setLanguage}
+            />
             <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/register" element={<RegisterForm />} />
 
                 <Route path="/wallet" element={<WalletPage />} />
-                <Route path="/wallet/actions/:walletId" element={<WalletActionsPage/>} />
+                <Route path="/wallet/actions/:walletId" element={<WalletActionsPage />} />
                 <Route path="/transaction/:walletId" element={<TransactionList />} />
                 <Route path="/obligation/:walletId" element={<ObligationPage />} />
 
