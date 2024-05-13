@@ -48,11 +48,16 @@ public class AccountController : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult> Login([FromBody] Credentials cred)
     {
-        var user = await _userManager.FindByNameAsync(cred.Login);
+        var user = await _userManager.Users
+            .Include(u => u.SecurityQuestion)
+            .FirstOrDefaultAsync(u => u.UserName == cred.Login);
 
         if (user == null)
         {
-            user = await _userManager.FindByEmailAsync(cred.Login);
+            user = await _userManager.Users
+                .Include(u => u.SecurityQuestion)
+                .FirstOrDefaultAsync(u => u.Email == cred.Login);
+
             if (user == null)
                 return Unauthorized("Invalid credentials");
         }
@@ -122,6 +127,26 @@ public class AccountController : ControllerBase
                 isValid = true; 
             }
  
+            if (!isValid)
+            {
+                return Unauthorized("Invalid credentials");
+            }
+        }
+
+        // Validating question authorization
+        if (user.SecurityQuestionAnswer != null && cred.SecurityQuestionAnswer == null)
+        {
+            return StatusCode(203, user.SecurityQuestion.Question);
+
+        }
+        else if (user.SecurityQuestionAnswer != null && cred.SecurityQuestionAnswer != null)
+        {
+            bool isValid = false;
+            if (user.SecurityQuestionAnswer == cred.SecurityQuestionAnswer)
+            {
+                isValid = true;
+            }
+
             if (!isValid)
             {
                 return Unauthorized("Invalid credentials");
@@ -965,18 +990,20 @@ public class AccountController : ControllerBase
     }
     public class Credentials
     {
-        public Credentials(string login, string password, string? authKey, string? emailAuthorizationCode)
+        public Credentials(string login, string password, string? authKey, string? emailAuthorizationCode, string? securityQuestionAnswer)
         {
             Login = login;
             Password = password;
             AuthKey = authKey;
             EmailAuthorizationCode = emailAuthorizationCode;
+            SecurityQuestionAnswer = securityQuestionAnswer;
         }
 
         public string Login { get; set; }
         public string Password { get; set; }
         public string? AuthKey { get; set; }
         public string? EmailAuthorizationCode { get; set; }
+        public string? SecurityQuestionAnswer { get; set; }
     }
     public class UserModelForRegistration
     {

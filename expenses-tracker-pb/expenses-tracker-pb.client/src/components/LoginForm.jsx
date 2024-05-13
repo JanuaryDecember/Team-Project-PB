@@ -10,9 +10,12 @@ const LoginForm = ({ onLogin }) => {
   const [password, setPassword] = useState("");
   const [authKey, setAuthKey] = useState(null);
   const [emailAuthorizationCode, setEmailAuthorizationCode] = useState(null);
+  const [securityQuestionAnswer, setSecurityQuestionAnswer] = useState(null);
+  const [securityQuestion, setSecurityQuestion] = useState(null);
   const [loginError, setLoginError] = useState("");
   const [visibleAuth, setVisibleAuth] = useState(false);
   const [visibleEmailAuthentication, setVisibleEmailAuthentication] = useState(false);
+  const [visibleSecurityQuestionAuthentication, setVisibleSecurityQuestionAuthentication] = useState(false);
   const [recaptchaBool, setRecaptchaBool] = useState(null);
   const navigate = useNavigate();
 
@@ -24,9 +27,10 @@ const LoginForm = ({ onLogin }) => {
       password: password,
       authKey: authKey,
       emailAuthorizationCode: emailAuthorizationCode,
+      securityQuestionAnswer: securityQuestionAnswer,
     };
 
-    try {
+      try {
       const response = await fetch("/api/account/login", {
         method: "POST",
         headers: {
@@ -39,12 +43,19 @@ const LoginForm = ({ onLogin }) => {
         if (response.status === 202) {
             const data = await response.text();
             if (data == "Email Authentication") {
+                showWarningAlert("Email authentication!");
                 setVisibleEmailAuthentication(true);
             }
             else {
                 showWarningAlert("Two-Factor authentication!");
                 setVisibleAuth(true);
             }
+        }
+        else if (response.status === 203){
+            const data = await response.text();
+            setSecurityQuestion(data);
+            showWarningAlert("Security Question authentication!");
+            setVisibleSecurityQuestionAuthentication(true);
         }
       else if (response.ok) {
         showSuccessAlert("Login successful! ");
@@ -53,8 +64,20 @@ const LoginForm = ({ onLogin }) => {
       }
       else if (visibleAuth) {
         setVisibleAuth(false);
-          setAuthKey(null);
-          showFailedAlert("Invalid Two-Factor code");
+        setAuthKey(null);
+        showFailedAlert("Invalid Two-Factor code");
+        setLoginError("Invalid Two-Factor code");
+      }
+      else if (visibleEmailAuthentication) {
+        setVisibleEmailAuthentication(false);
+        setEmailAuthorizationCode(null);
+        showFailedAlert("Invalid Two-Factor code");
+        setLoginError("Invalid Two-Factor code");
+      }
+      else if (visibleSecurityQuestionAuthentication) {
+        setVisibleSecurityQuestionAuthentication(false);
+        setSecurityQuestionAnswer(null);
+        showFailedAlert("Invalid Two-Factor code");
         setLoginError("Invalid Two-Factor code");
       }
       else {
@@ -71,7 +94,7 @@ const LoginForm = ({ onLogin }) => {
 
   return (
     <div className="container">
-          {!visibleAuth & !visibleEmailAuthentication ?
+          {!visibleAuth & !visibleEmailAuthentication & !visibleSecurityQuestionAuthentication ?
               <div>
                   <h2 className="mt-4">Login</h2>
                   <form onSubmit={handleLogin} className="row g-3">
@@ -131,7 +154,7 @@ const LoginForm = ({ onLogin }) => {
               : null}
           {visibleAuth ?
               <div className="">
-                  <h2 className="mt-4">Two Factor Authentication</h2>
+                  <h2 className="mt-4">Google Authentication</h2>
                   <form onSubmit={handleLogin} className="row g-3">
                       <div className="col-md-6">
                           <label htmlFor="authKey" className="form-label">
@@ -168,6 +191,29 @@ const LoginForm = ({ onLogin }) => {
                               id="emailAuthorizationCode"
                               value={emailAuthorizationCode}
                               onChange={(e) => setEmailAuthorizationCode(e.target.value)}
+                              required
+                          />
+                      </div>
+                      <div className="col-12">
+                          <button type="submit" className="btn btn-primary">
+                              Verify
+                          </button>
+                      </div>
+                  </form>
+              </div>
+              : null}
+          {visibleSecurityQuestionAuthentication ?
+              <div className="">
+                  <h2 className="mt-4" >Security Question Authentication</h2>
+                  <form onSubmit={handleLogin} className="row g-3">
+                      <div className="col-md-6">
+                          <h4 className="mt-4">{securityQuestion}</h4>
+                          <input
+                              type="text"
+                              className="form-control"
+                              id="securityQuestionAnswer"
+                              value={securityQuestionAnswer}
+                              onChange={(e) => setSecurityQuestionAnswer(e.target.value)}
                               required
                           />
                       </div>
