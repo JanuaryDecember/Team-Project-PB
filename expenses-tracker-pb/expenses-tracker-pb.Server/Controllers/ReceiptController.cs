@@ -39,8 +39,8 @@ public class ReceiptController : ControllerBase
 	private readonly GoogleDriveService _googleDriveService;
 	private readonly string[] _scopes = { DriveService.Scope.Drive };
 	private readonly string _applicationName = "Google Drive API";
-	private readonly string _uploadAccountKeyPath = "C:\\Users\\pczyz\\Desktop\\credentials.json";
-	private readonly string _viewAccountKeyPath = "C:\\Users\\pczyz\\Desktop\\credentials-view.json";
+	private readonly string _uploadAccountKeyPath = "C:\\Users\\mdobr\\source\\credentials.json";
+	private readonly string _viewAccountKeyPath = "C:\\Users\\mdobr\\source\\credentials-view.json";
 
 	public ReceiptController(GoogleDriveService googleDriveService)
 	{
