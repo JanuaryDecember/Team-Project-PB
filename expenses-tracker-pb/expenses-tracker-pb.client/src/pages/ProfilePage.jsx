@@ -9,7 +9,9 @@ const ProfilePage = () => {
             userName: '',
             email: '',
             password: '******',
-            twoFactorEnabled: false,
+            emailTwoFactorAuthenticationEnabled: false,
+            googleAuthKey: null,
+            securityQuestionAnswer: null,
         },
         logins: [],
     });
@@ -351,7 +353,8 @@ const ProfilePage = () => {
                                         )}
                                     </td>
                                     <td>
-                                        {userData.user.twoFactorEnabled ? "Yes" : "No"}
+                                            {userData.user.emailTwoFactorAuthenticationEnabled === false && userData.user.googleAuthKey === null && userData.user.securityQuestionAnswer === null ? "No" : "Yes"}
+
                                      </td>
                                         
                                 </tr>
