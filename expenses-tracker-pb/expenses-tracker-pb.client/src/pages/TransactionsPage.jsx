@@ -93,7 +93,7 @@ const TransactionList = () => {
         setSelectedCategory(null);
         setMinValue(null);
         setMaxValue(null);
-        setContainsString(null);;
+        setContainsString(null);
         setCaseSensitive(null);
 
         document.getElementById("categorySelect").value = "";
@@ -171,6 +171,16 @@ const TransactionList = () => {
             (category) => category.Id === categoryId
         );
         return foundCategory ? foundCategory.Name : "Unknown";
+    };
+
+    const getCardBackgroundColor = (transactionType) => {
+        if (transactionType === 'income') {
+            return 'bg-income';
+        } else if (transactionType === 'expenditure') {
+            return 'bg-expenditure';
+        } else {
+            return '';
+        }
     };
 
     async function handleModalSubmit() {
@@ -366,6 +376,7 @@ const TransactionList = () => {
                     walletId={walletId}
                     onSubmit={(newTransactionData) => {
                         handleAddTransaction(newTransactionData);
+                        setShowForm(false);
                     }}
                     onCancel={() => setShowForm(false)}
                 />
@@ -539,7 +550,7 @@ const TransactionList = () => {
                         className="col my-3"
                         style={{ minWidth: "30%" }}
                     >
-                        <div className="card h-100 w-100 text-center">
+                        <div className={`card h-100 w-100 text-center ${getCardBackgroundColor(transaction.TransactionType)}`}>
                             <h2 className="w-75">{transaction.Title}</h2>
                             <h5>{transaction.Amount} PLN</h5>
                             <p>{findCategoryName(transaction.CategoryId)}</p>
