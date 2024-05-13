@@ -15,7 +15,6 @@ public class GoogleDriveService
 	{
 		return CreateDriveService(scopes, applicationName,serviceAccountKeyPath);
 	}
-	
 	public DriveService CreateDriveService(string[] scopes, string applicationName, string serviceAccountKeyPath)
 	{
 		GoogleCredential credential;
@@ -31,7 +30,6 @@ public class GoogleDriveService
 			ApplicationName = applicationName,
 		});
 	}
-
 }
 
 [ApiController]
@@ -97,7 +95,6 @@ public class ReceiptController : ControllerBase
 			return StatusCode(500, $"Error uploading file: {ex.Message}. Stack Trace: {ex.StackTrace}");
 		}
 	}
-
 	private async Task<string> FindUserFolder(DriveService service, string folderName)
 	{
 		try
@@ -140,13 +137,13 @@ public class ReceiptController : ControllerBase
 			request.Fields = "id";
 
 			var folder = await request.ExecuteAsync();
-			Console.WriteLine($"New user folder created. ID: {folder.Id}");
+			//Console.WriteLine($"New user folder created. ID: {folder.Id}");
 
 			return folder.Id;
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine($"Error creating user folder: {ex.Message}. Stack Trace: {ex.StackTrace}");
+			//Console.WriteLine($"Error creating user folder: {ex.Message}. Stack Trace: {ex.StackTrace}");
 			throw;
 		}
 	}
@@ -174,5 +171,40 @@ public class ReceiptController : ControllerBase
 		}
 	}
 
+	[HttpGet("photos")]
+	public async Task<IActionResult> GetPhotos()
+	{
+		try
+		{
+			var folderName = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+			var service = _googleDriveService.GetDriveService(_scopes, _applicationName, _uploadAccountKeyPath);
+			var folderId = await FindUserFolder(service, folderName);
 
+			if (string.IsNullOrEmpty(folderId))
+			{
+				return NotFound("User folder not found.");
+			}
+
+			var listRequest = service.Files.List();
+			listRequest.Q = $"'{folderId}' in parents";
+			var files = await listRequest.ExecuteAsync();
+
+			var photoUrls = new List<string>();
+			foreach (var file in files.Files)
+			{
+				if (file.MimeType.StartsWith("image/"))
+				{
+					var thumbnailUrl = $"https://drive.google.com/thumbnail?id={file.Id}";
+					photoUrls.Add(thumbnailUrl);
+					//Console.WriteLine($"Link:{thumbnailUrl}, File: {file.Name}, ID: {file.Id}, MIME Type: {file.MimeType}");
+				}
+			}
+
+			return Ok(photoUrls);
+		}
+		catch (Exception ex)
+		{
+			return StatusCode(500, $"Error: {ex.Message}");
+		}
+	}
 }
