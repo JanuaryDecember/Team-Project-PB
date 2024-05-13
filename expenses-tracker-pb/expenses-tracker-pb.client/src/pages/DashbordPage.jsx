@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Chart1 from '../components/AccountTrafficChart';
 import Chart2 from '../components/CategoriesChart';
-import { showSuccessAlert, showFailedAlert, showWarningAlert} from '../components/ToastifyAlert';
+import { showSuccessAlert, showFailedAlert, showWarningAlert } from '../components/ToastifyAlert';
 
 const DashboardPage = () => {
     const storedUser = localStorage.getItem('user');
@@ -15,13 +15,13 @@ const DashboardPage = () => {
             const response = await fetch(`/api/budget/checkBudget`, {
                 credentials: 'include',
             });
-    
+
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-    
+
             const data = await response.json();
-    
+
             if (data && data.length > 0) {
                 console.log("Budgets with negative balance:");
                 console.log(data);
@@ -41,17 +41,17 @@ const DashboardPage = () => {
     useEffect(() => {
         if (user == null) {
             navigate("/");
-        }else
+        } else
             checkBudget();
     }, [navigate]);
-    
+
     return (
         user !== null ?
             <div className='container'>
                 <div className="mb-3">
                     <span className="fs-4"><strong>Welcome, {user.username}!</strong></span>
                     <p className="mt-2"><em>Explore your dashboard and manage your financial activities with ease.</em></p>
-                    <div className="row mt-5" style={{gap: "0px"} }>
+                    <div className="row mt-5" style={{ gap: "0px" }}>
                         <Link to="/wallet" className="link col-sm-3" style={{ minWidth: "25%", margin: "0 0 5px 0" }}>
                             <div className="card background-my w-100 m-auto text-center">
                                 <img className="icons" src='https://cdn-icons-png.flaticon.com/512/493/493389.png' alt="Wallet Icon" />
@@ -70,7 +70,7 @@ const DashboardPage = () => {
                                 <span>Export Data</span>
                             </div>
                         </Link>
-                        <Link to="/myReceipt" className="link" style={{ minWidth: "25%", margin: "0 5px" }}>
+                        <Link to="/myReceipt" className="link col-sm-3" style={{ minWidth: "25%", margin: "0 0 5px 0" }}>
                             <div className="card background-my m-auto text-center">
                                 <img className="icons" src='https://cdn-icons-png.flaticon.com/128/217/217905.png' alt="Receipt Icon" />
                                 <span>My Receipt</span>
