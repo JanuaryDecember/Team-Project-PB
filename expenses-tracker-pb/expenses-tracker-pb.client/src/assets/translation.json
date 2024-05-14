@@ -6,10 +6,33 @@
 			"Language": "Język",
 			"ChooseLang": "Wybierz język",
 			"Login": "Zaloguj",
-			"Logout": "Wyloguj"
+			"Logout": "Wyloguj",
+			"RegisterBtn": "Zarejestruj"
 		},
 		"Navbar" :{
 			"Home": "Strona główna",
+			"Modal": {
+				"Title": "Aktualne zobowiązania", 
+				"None": "Nie znaleziono żadnych zobowiązań finansowych!"
+			}
+		},
+		"LandingPage" :{
+			"NoAcc" : "Jeżeli nie masz konta, możesz sie zarejestrować tutaj:",
+			"Desc" : "Expenses Tracker została zaprojektowana, aby pomóc Ci skutecznie zarządzać finansami z łatwością. Bez względu na to, czy śledzisz codzienne wydatki, zarządzasz kilkoma portfelami czy organizujesz swoje transakcje finansowe, ta aplikacja zapewnia kompleksowe rozwiązanie dla Twoich potrzeb związanych z zarządzaniem finansami."
+		},
+		"LoginForm" :{
+			"Username":"Nazwa użytkownika lub email:",
+			"Password":"Hasło",
+			"Forgot":"Zresetuj hasło",
+			"EmailAuth": "Autentykacja email",
+			"GoogleAuth": "Autentykacja Google",
+			"Code": "Kod:",
+			"QuestionAuth": "Autentykacja pytaniem pomocniczym",
+			"Verify": "Zweryfikuj"
+		},
+		"Dashboard": {
+			"Greetings": "Witaj, ",
+			"Desc": "Eksploruj swoją stronę główną i łatwo zarządzaj swoimi finansowymi działaniami.",
 			"Export": "Wyeksportuj portfel",
 			"Import": "Zaimportuj portfel",
 			"Wallets": "Portfele",
@@ -18,7 +41,7 @@
 			"Categories": "Kategorie",
 			"Budget": "Budżet",
 			"Receipts": "Paragony",
-			"Modal": {"Title": "Aktualne zobowiązania", "None": "Nie znaleziono żadnych zobowiązań finansowych!"}
+			"Profile": "Mój profil"
 		}
 	},
 	"English":
@@ -28,10 +51,33 @@
 			"Language": "Language",
 			"ChooseLang": "Choose language",
 			"Login": "Login",
-			"Logout": "Logout"
+			"Logout": "Logout",
+			"RegisterBtn": "Register"
 		},
 		"Navbar" :{
 			"Home": "Home",
+			"Modal": {
+				"Title": "Current obligations",
+				"None": "No obligations with upcoming due dates found!"
+			}
+		},
+		"LandingPage" :{
+			"NoAcc" : "If you don't have an account, you can register here:",
+			"Desc": "Expenses Tracker Application is designed to help you effectively manage your finances with ease. Whether you're tracking daily expenses, managing multiple wallets, or organizing your financial transactions, this application provides a comprehensive solution for your financial management needs."
+		},
+		"LoginForm" :{
+			"Username":"Username or Email:",
+			"Password":"Password",
+			"Forgot":"Forgot password?",
+			"EmailAuth": "Email authentication",
+			"GoogleAuth": "Google Authentication",
+			"Code": "Code:",
+			"QuestionAuth": "Security Question Authentication",
+			"Verify": "Verify"
+		},
+		"Dashboard": {
+			"Greetings": "Welcome, ",
+			"Desc": "Explore your dashboard and manage your financial activities with ease.",
 			"Export": "Export wallet",
 			"Import": "Import wallet",
 			"Wallets": "Wallets",
@@ -40,7 +86,7 @@
 			"Categories": "Categories",
 			"Budget": "Budgets",
 			"Receipts": "Receipts",
-			"Modal": {"Title": "Current obligations", "None": "No obligations with upcoming due dates found!"}
+			"Profile": "My Profile"
 		}
 	}
 }

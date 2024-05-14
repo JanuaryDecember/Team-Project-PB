@@ -30,24 +30,24 @@ const App = () => {
                 setLanguage={setLanguage}
             />
             <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/register" element={<RegisterForm />} />
+                <Route path="/" element={<LandingPage language={language} setLanguage={setLanguage} />} />
+                <Route path="/dashboard" element={<DashboardPage language={language} setLanguage={setLanguage} />} />
+                <Route path="/register" element={<RegisterForm language={language} setLanguage={setLanguage} />} />
 
-                <Route path="/wallet" element={<WalletPage />} />
-                <Route path="/wallet/actions/:walletId" element={<WalletActionsPage />} />
-                <Route path="/transaction/:walletId" element={<TransactionList />} />
-                <Route path="/obligation/:walletId" element={<ObligationPage />} />
+                <Route path="/wallet" element={<WalletPage language={language} setLanguage={setLanguage} />} />
+                <Route path="/wallet/actions/:walletId" element={<WalletActionsPage language={language} setLanguage={setLanguage} />} />
+                <Route path="/transaction/:walletId" element={<TransactionList language={language} setLanguage={setLanguage} />} />
+                <Route path="/obligation/:walletId" element={<ObligationPage language={language} setLanguage={setLanguage} />} />
 
-                <Route path="/export" element={<Export />} />
-                <Route path="/import" element={<Import />} />
-                <Route path="/report" element={<FinancialReport />} />
-                <Route path="/account/settings/twoFactorAuthentication" element={<TwoFactorAuthentication />} />
-                <Route path="/categories" element={<ManageCategories />} />
-                <Route path="/profile" element={<ProfilePage />}></Route>
-                <Route path="/passwordRecovery" element={<PasswordRecoveryPage />}></Route>
-                <Route path="/myReceipt" element={<MyReceipt />}></Route>
-                <Route path="/budget" element={<BudgetPage />}></Route>
+                <Route path="/export" element={<Export language={language} setLanguage={setLanguage} />} />
+                <Route path="/import" element={<Import language={language} setLanguage={setLanguage} />} />
+                <Route path="/report" element={<FinancialReport language={language} setLanguage={setLanguage} />} />
+                <Route path="/account/settings/twoFactorAuthentication" element={<TwoFactorAuthentication language={language} setLanguage={setLanguage} />} />
+                <Route path="/categories" element={<ManageCategories language={language} setLanguage={setLanguage} />} />
+                <Route path="/profile" element={<ProfilePage language={language} setLanguage={setLanguage} />}></Route>
+                <Route path="/passwordRecovery" element={<PasswordRecoveryPage language={language} setLanguage={setLanguage} />}></Route>
+                <Route path="/myReceipt" element={<MyReceipt language={language} setLanguage={setLanguage} />}></Route>
+                <Route path="/budget" element={<BudgetPage language={language} setLanguage={setLanguage} />}></Route>
             </Routes>
         </Router>
     );
