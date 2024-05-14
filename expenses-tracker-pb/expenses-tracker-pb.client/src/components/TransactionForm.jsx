@@ -268,6 +268,8 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                 showSuccessAlert('Transaction added successfully!');
                 checkBudget();
                 document.getElementById('helper').click();
+                onCancel();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
                 console.error(response);
                 showFailedAlert('Invalid form data');
@@ -283,7 +285,7 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
     return (
         <div>
 
-            <div className="mb-3">
+            <div className="mb-3 d-flex justify-content-center">
                 <button
                     className={`btn ${transactionType === 'income' ? 'btn-grey' : 'btn-secondary'} mx-1`}
                     onClick={() => handleTypeSelection('income')}

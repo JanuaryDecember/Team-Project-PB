@@ -142,42 +142,11 @@ const RootElement = (props) => {
                     <span className="navbar-toggler-icon"></span>
                 </button>
                 <div className="collapse navbar-collapse" id="collapsibleNavId">
-                    {isUserLogged ? (
-                        <ul className="navbar-nav me-auto mt-2 mt-lg-0">
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/dashboard" aria-current="page">{navbarLang?.Home}<span className="visually-hidden">(current)</span></Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/export">{navbarLang?.Export}</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/import">{navbarLang?.Import}</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/wallet">{navbarLang?.Wallets}</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/account/settings/twoFactorAuthentication">{navbarLang?.TwoFactor}</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/report">{navbarLang?.Report}</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/categories">{navbarLang?.Categories}</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/budget">{navbarLang?.Budget}</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/myReceipt">{navbarLang?.Receipts}</Link>
-                            </li>
-                        </ul>) :
-                        (
-                            <ul className="navbar-nav me-auto mt-2 mt-lg-0">
-                                <li className="nav-item">
-                                    <Link className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} to="/" aria-current="page">{navbarLang?.Home}<span className="visually-hidden">(current)</span></Link>
-                                </li>
-                            </ul>)}
+                    <ul className="navbar-nav me-auto mt-2 mt-lg-0">
+                        <li className="nav-item">
+                            <Link className="nav-link" to="/dashboard" aria-current="page">{navbarLang?.Home}<span className="visually-hidden">(current)</span></Link>
+                        </li>
+                    </ul>) :
                     {isUserLogged ? (
                         <>
                             <ul className="navbar-nav navbar-nav__profile-button">
@@ -240,8 +209,10 @@ const RootElement = (props) => {
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <button className="btn btn-primary" onClick={() => btnclick("Polish")}>Polski</button>
-                            <button className="btn btn-primary" onClick={() => btnclick("English")}>English</button>
+                            <div className="d-flex align-items-center justify-content-center">
+                                <button className="btn btn-primary mx-2" onClick={() => btnclick("Polish")}>Polski</button>
+                                <button className="btn btn-primary mx-2" onClick={() => btnclick("English")}>English</button>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{translation[props.language]?.Utils.ButtonClose}</button>
