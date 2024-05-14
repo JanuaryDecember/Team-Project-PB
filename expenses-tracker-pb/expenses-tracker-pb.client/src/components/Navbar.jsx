@@ -43,7 +43,7 @@ const RootElement = (props) => {
                 {user?.profilePicture ? (
                     <img src={`data:image/jpeg;base64,${user.profilePicture}`} alt="Profile" className="navbar-profile-img" />
                 ) : (
-                    <img src="https://img.redro.pl/fototapety/ikona-wektor-profilu-uzytkownika-700-146325654.jpg" alt="Default Profile" className="navbar-profile-img" />
+                    <img src="https://img.redro.pl/fototapety/ikona-wektor-profilu-uzytkownika-700-146325654.jpg" alt="Default Profile" className="navbar-profile-img" key="profile-image"/>
                 )}
             </div>
         );
@@ -224,7 +224,9 @@ const RootElement = (props) => {
                         );
                     } else {
                         return (
-                            <>{translation[props.language]?.Navbar.Modal.None}</>
+                            <React.Fragment key={index}>
+                                No obligations with upcoming due dates found.
+                            </React.Fragment>
                         );
                     }
                 })}

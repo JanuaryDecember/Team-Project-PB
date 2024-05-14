@@ -21,7 +21,6 @@ function Budget() {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [budgetTransactions, setBudgetTransactions] = useState(null);
-  const [warningBackground, setWarningBackground] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
