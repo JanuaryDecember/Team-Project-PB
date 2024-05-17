@@ -59,6 +59,12 @@ namespace _2023pz_trrepo.Controllers
             if (wallet == null || budgetCategory == null || user == null)
                 return BadRequest("Error finding wallet, budget category, or user!");
 
+            //check if budget to set wallet and category already exists
+            var existingBudget = await _dbContext.Budgets.FirstOrDefaultAsync(x => x.Wallet == wallet && x.BudgetCategory == budgetCategory);
+            if (existingBudget != null)
+                return Conflict("Budget for selected wallet and category already exists!");
+
+
             var newBudget = new Budget
             {
                 Name = budgetDetails.name,
