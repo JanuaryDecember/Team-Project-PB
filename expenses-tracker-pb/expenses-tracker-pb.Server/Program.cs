@@ -9,7 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<ETDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DawidConnection")));
+builder.Services.AddDbContext<ETDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("EwaConnection")));
 
 builder.Services.AddCors();
 
@@ -33,6 +33,8 @@ builder.Services.AddIdentity<User, IdentityRole>()
 builder.Services.AddAuthorization();
 
 builder.Services.AddTransient<EmailSender>();
+
+builder.Services.AddTransient<GoogleDriveService>();
 
 
 var app = builder.Build();

@@ -196,3 +196,11 @@ label {
 .Toastify__toast-body{
     white-space: pre-line;
 }
+
+.bg-income {
+    background-color: #B2CCB5;
+}
+
+.bg-expenditure {
+    background-color: #CCB2B2;
+}

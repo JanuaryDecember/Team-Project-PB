@@ -1,13 +1,54 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { showSuccessAlert, showWarningAlert } from "../components/ToastifyAlert";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const AddReceipt = () => {
+const MyReceipt = () => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
     const [fileName, setFileName] = useState("");
+    const [folderLink, setFolderLink] = useState(null);
+    const [photoUrls, setPhotoUrls] = useState([]);
+
+    const fetchFolderLink = async () => {
+        try {
+            const response = await fetch("/api/receipt/userfolder");
+            if (response.ok) {
+                const link = await response.text();
+                setFolderLink(link);
+            } else {
+                console.error('An error occurred while fetching folder link.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    const fetchPhotos = async () => {
+        try {
+            const photosResponse = await fetch("/api/receipt/photos");
+            if (photosResponse.ok) {
+                const urls = await photosResponse.json();
+                setPhotoUrls(urls);
+            } else {
+                console.error('An error occurred while fetching photos.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchFolderLink();
+        fetchPhotos();
+    }, []);
+
+    useEffect(() => {
+        if (photoUrls.length === 1 && !folderLink) {
+            fetchFolderLink();
+        }
+    }, [photoUrls, folderLink]);
 
     const handleFileChange = (event) => {
         const file = event.target.files[0];
@@ -58,6 +99,7 @@ const AddReceipt = () => {
                 setPreviewImage(null);
                 setFileName("");
                 showSuccessAlert('File has been successfully uploaded.');
+                fetchPhotos();
             } else {
                 console.error('An error occurred while uploading the file.');
                 alert('An error occurred while uploading the file.');
@@ -74,6 +116,30 @@ const AddReceipt = () => {
 
     return (
         <div className='container'>
+            <h2 className="mt-4">Folder link</h2>
+            {folderLink ? (
+                <div>
+                    <a href={folderLink} target="_blank" rel="noopener noreferrer">Open My Folder</a>
+                </div>
+            ) : (
+                <div>
+                    Link does not exist. You need to add some file!
+                </div>
+            )}
+            <h2 className="mt-4">Photos from Google Drive</h2>
+            <div className="row">
+                {photoUrls.length > 0 ? (
+                    photoUrls.map((url, index) => (
+                        <div className="col-md-4 mb-3 d-flex justify-content-center" key={index}>
+                            <img src={url} alt={`PHOTO ${index}`} style={{ maxWidth: '100%', maxHeight: '300px' }} />
+                        </div>
+                    ))
+                ) : (
+                    <div className="col-md-12">
+                        <p>No photos to display.</p>
+                    </div>
+                )}
+            </div>
             <h2 className="mt-4">Add receipt</h2>
             <form onSubmit={handleSubmit}>
                 <div className="row">
@@ -117,4 +183,4 @@ const AddReceipt = () => {
     );
 };
 
-export default AddReceipt;
+export default MyReceipt;

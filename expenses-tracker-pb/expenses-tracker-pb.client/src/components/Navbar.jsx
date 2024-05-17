@@ -4,8 +4,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Badge } from 'react-bootstrap';
 import Modal from 'react-modal';
 import './../styles/Site.css';
+import translation from './../assets/translation.json'
 
-const RootElement = () => {
+const RootElement = (props) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [user, setUser] = useState(null);
@@ -16,28 +17,33 @@ const RootElement = () => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         const savedUser = localStorage.getItem('user');
-
         if (token) {
             setUser({ token });
         }
 
-        console.log('Loaded user data:', savedUser); 
 
         if (savedUser) {
             const parsedUser = JSON.parse(savedUser);
-            console.log('Parsed user data:', parsedUser); 
             setUser(parsedUser);
         }
     }, []);
 
     const renderProfile = () => {
-        console.log("Profile Picture:", user?.profilePicture);
+        if (!user) {
+            const savedUser = localStorage.getItem('user');
+
+            if (savedUser) {
+                const parsedUser = JSON.parse(savedUser);
+                setUser(parsedUser);
+            }
+        }
+
         return (
             <div className="navbar-profile">
                 {user?.profilePicture ? (
                     <img src={`data:image/jpeg;base64,${user.profilePicture}`} alt="Profile" className="navbar-profile-img" />
                 ) : (
-                    <img src="https://img.redro.pl/fototapety/ikona-wektor-profilu-uzytkownika-700-146325654.jpg" alt="Default Profile" className="navbar-profile-img" />
+                    <img src="https://img.redro.pl/fototapety/ikona-wektor-profilu-uzytkownika-700-146325654.jpg" alt="Default Profile" className="navbar-profile-img" key="profile-image"/>
                 )}
             </div>
         );
@@ -114,53 +120,33 @@ const RootElement = () => {
         setUser(null);
         navigate("/");
     };
+    const navbarLang = translation[props.language]?.Navbar;
 
+    function btnclick(lang) {
+        switch (lang) {
+            case "English":
+                props.setLanguage("English");
+                break;
+            case "Polish":
+                props.setLanguage("Polish");
+                break;
+        }
+    }
 
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark w-100">
             <div className="container">
-                <Link className="navbar-brand" to={isUserLogged ? "/dashboard" : "/"}>Expenses tracker application</Link>
+                <Link className="navbar-brand" to={isUserLogged ? "/dashboard" : "/"}>Expenses tracker</Link>
                 <button className="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId"
                     aria-expanded="false" aria-label="Toggle navigation">
                     <span className="navbar-toggler-icon"></span>
                 </button>
                 <div className="collapse navbar-collapse" id="collapsibleNavId">
-                    {isUserLogged ? (
-                        <ul className="navbar-nav me-auto mt-2 mt-lg-0">
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/dashboard" aria-current="page">Home <span className="visually-hidden">(current)</span></Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/export">Export</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/import">Import</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/wallet">Wallet</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/account/settings/twoFactorAuthentication">TwoFactor</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/report">Report</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/categories">Categories</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/budget">Budget</Link>
-                            </li>
-                            <li className="nav-item">
-                                <Link className="nav-link" to="/addReceipt">Add receipt</Link>
-                            </li>
-                        </ul>) :
-                        (
-                            <ul className="navbar-nav me-auto mt-2 mt-lg-0">
-                                <li className="nav-item">
-                                    <Link className={`nav-link ${location.pathname === '/' ? 'active' : ''}`} to="/" aria-current="page">Home <span className="visually-hidden">(current)</span></Link>
-                                </li>
-                            </ul>)}
+                    <ul className="navbar-nav me-auto mt-2 mt-lg-0">
+                        <li className="nav-item">
+                            <Link className="nav-link" to="/dashboard" aria-current="page">{navbarLang?.Home}<span className="visually-hidden">(current)</span></Link>
+                        </li>
+                    </ul>) :
                     {isUserLogged ? (
                         <>
                             <ul className="navbar-nav navbar-nav__profile-button">
@@ -174,9 +160,10 @@ const RootElement = () => {
                                 </li>
                             </ul>
                             {renderProfile()}
-                            <button className="btn btn-outline-light" onClick={() => handleLogout()}>Logout</button>
+                            <button className="btn btn-outline-light" onClick={() => handleLogout()}>{translation[props.language]?.Utils.Logout}</button>
                         </>
                     ) : null}
+                    <button className="btn btn-outline-light w-auto mx-2" data-bs-toggle="modal" data-bs-target="#languageModal">{translation[props.language]?.Utils.Language}</button>
                 </div>
             </div>
             <Modal
@@ -185,7 +172,7 @@ const RootElement = () => {
                 contentLabel="Notifications Modal"
                 className="notification-modal"
             >
-                <h2>Current obligations</h2>
+                <h2>{translation[props.language]?.Navbar.Modal.Title}</h2>
                 {obligationsAlertMessage.trim().split('\n').map((line, index) => {
                     const elements = line.split(', ');
                     if (elements.length >= 4) {
@@ -206,12 +193,33 @@ const RootElement = () => {
                         );
                     } else {
                         return (
-                            <>No obligations with upcoming due dates found.</>
+                            <React.Fragment key={index}>
+                                No obligations with upcoming due dates found.
+                            </React.Fragment>
                         );
                     }
                 })}
-                <button className="btn btn-danger" onClick={() => setModalIsOpen(false)}>Close</button>
+                <button className="btn btn-danger" onClick={() => setModalIsOpen(false)}>{translation[props.language]?.Utils.ButtonClose}</button>
             </Modal>
+            <div class="modal fade" id="languageModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">{translation[props.language]?.Utils.ChooseLang}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div className="d-flex align-items-center justify-content-center">
+                                <button className="btn btn-primary mx-2" onClick={() => btnclick("Polish")}>Polski</button>
+                                <button className="btn btn-primary mx-2" onClick={() => btnclick("English")}>English</button>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{translation[props.language]?.Utils.ButtonClose}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </nav>
     );
 };

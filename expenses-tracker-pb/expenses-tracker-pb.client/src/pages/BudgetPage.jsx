@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
-import { showSuccessAlert, showFailedAlert, showWarningAlert} from '../components/ToastifyAlert';
 
 
 function Budget() {
@@ -20,6 +19,8 @@ function Budget() {
   const [selectedBudget, setSelectedBudget] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [budgetTransactions, setBudgetTransactions] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -50,7 +51,6 @@ function Budget() {
           fetchBudgets();
           getAllUserWallets();
           getAllBudgetCategories();
-          checkBudget();
         }
       } catch (error) {
         console.error("Error importing wallets:", error.message);
@@ -60,33 +60,33 @@ function Budget() {
   }, []);
 
   const checkBudget = async () => {
+    
+  };
+  
+  const loadBudgetTransactions = async (budgetId) => {
     try {
-        const response = await fetch(`/api/budget/checkBudget`, {
-            credentials: 'include',
-        });
+      const response = await fetch(`/api/budget/budgetTransactions/${budgetId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data && data.length > 0) {
-            console.log("Budgets with negative balance:");
-            console.log(data);
-            data.forEach(budget => {
-                showWarningAlert(`Exceeded Budget!
-                Budget: ${budget.name}
-                Total Expenditure: ${budget.remainingBalance}
-                Category: ${budget.budgetCategoryName}`);
-            });
-        } else {
-            console.log("No budgets have a negative total expenditure.");
-        }
+      if (response.ok) {
+        const transactions = await response.json();
+        console.log("Successfully imported budget transactions.");
+        console.log(transactions);
+        setBudgetTransactions(transactions);
+      } else {
+        console.error(response);
+        setAlertDanger("Error fetching budget transactions!");
+      }
     } catch (error) {
-        console.error('Error during checking budget:', error);
+      console.error("Error during fetching budget transactions!", error);
+      setAlertDanger("Error fetching budget transactions!");
     }
-};
+  }
 
   const getAllBudgetCategories = async () => {
     try {
@@ -155,6 +155,7 @@ function Budget() {
         setBudgets(budgetsData);
         console.log("Budgets are loaded.");
         console.log(budgetsData);
+        checkBudget(budgetsData);
         if(budgetsData == null)
           setAlertDanger("No defined budgets!");
       } else {
@@ -205,6 +206,12 @@ function Budget() {
     setShowEditModal(true);
   };
 
+  const handleDetailsBudget = (budget) => {
+    loadBudgetTransactions(budget.id);
+    setSelectedBudget(budget);
+    setShowDetails(true);
+  };
+
   const handleSaveBudgetChanges = async(budget) => {
     try {
       console.log("##### DEBUG ######");
@@ -235,6 +242,12 @@ function Budget() {
 
   const handleCancelEdit = () => {
     setShowEditModal(false);
+  };
+
+  const handleCancelDetails = () => {
+    setShowDetails(false);
+    setSelectedBudget(null);
+    setBudgetTransactions(null);
   };
 
   const handleDeleteBudget = (budget) => {
@@ -271,6 +284,10 @@ function Budget() {
     setShowDeleteConfirmation(false);
   };
 
+  const handleRedirectToNewTransaction = (walletId) => {
+    navigate(`/transaction/${walletId}`);
+  }
+
   return (
     <>
       <div className="container">
@@ -287,14 +304,14 @@ function Budget() {
           <div className="col-12 m-1">
             <label className="visually-hidden" htmlFor="totalIncome">TotalIncome</label>
             <div className="input-group">
-              <input type="number" className="form-control" id="totalIncome" placeholder="Total income" onChange={(e) => setNewBudgetTotalIncome(e.target.value)}required/>
+              <input type="number" className="form-control" id="totalIncome" placeholder="Base income" onChange={(e) => setNewBudgetTotalIncome(e.target.value)}required/>
             </div>
           </div>
 
           <div className="col-12 m-1">
             <label className="visually-hidden" htmlFor="totalExpenditure">TotalExpenditure</label>
             <div className="input-group">
-              <input type="number" className="form-control" id="totalExpenditure" placeholder="Total Expenditure" onChange={(e) => setNewBudgetTotalExpenditure(e.target.value)} required/>
+              <input type="number" className="form-control" id="totalExpenditure" placeholder="Current expensess" onChange={(e) => setNewBudgetTotalExpenditure(e.target.value)} required/>
             </div>
           </div>
 
@@ -327,85 +344,160 @@ function Budget() {
         {budgets && (
           <>
           <div className="row my-3">
-            {budgets.map((budget, index) => (
-                <div key={index} className="col my-2 card h-100 w-100 text-center m-2" style={{ minWidth: "30%" }}>
+              {budgets.map((budget, index) => (
+              <div key={index} className="col my-2 text-center m-2" style={{ minWidth: "30%" }}>
+                <div className={`card h-100 w-100 position-relative`} style={budget.remainingBalance < 0 ? { backgroundColor: 'rgba(255, 193, 7, 0.7)' } : {}}>
                   <div className="card-body">
                     <h5 className="card-title">
                       {budget.name}
                     </h5>
                     <p className="card-text">
-                        Total Income: {budget.totalIncome}<br/>
-                        Total Expenditure: {budget.totalExpenditure}<br/>
-                        RemainingBalance: {budget.remainingBalance}<br />
-                        Wallet: {budget.walletName}<br />
-                        Category: {budget.budgetCategoryName}
+                      Total Income: {budget.totalIncome}<br/>
+                      Total Expenditure: {budget.totalExpenditure}<br/>
+                      RemainingBalance: {budget.remainingBalance}<br />
+                      Wallet: {budget.walletName}<br />
+                      Category: {budget.budgetCategoryName}
                     </p>
+                    <button onClick={() => handleDetailsBudget(budget)} className="btn btn-primary me-2 btn-block" style={{ minWidth: "100%" }}>Details</button>
                     <div className="position-absolute top-0 end-0 m-2">
                       <button onClick={() => handleEditBudget(budget)} className="btn btn-warning btn-sm me-2">Edit</button>
-                      <button onClick={() => handleDeleteBudget(budget)} className="btn btn-danger btn-sm">Delete</button>
+                      <button onClick={() => handleDeleteBudget(budget)} className="btn btn-danger btn-sm">Delete</button>        
                     </div>
                   </div>
                 </div>
-              
-          ))}
+              </div>
+            ))}
           </div>
         </>
         )}
 
-      {showEditModal && (
-        <div className="modal fade show" tabIndex="-1" style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Edit Budget</h5>
-                <button type="button" className="btn-close" aria-label="Close" onClick={handleCancelEdit}></button>
-              </div>
-              <div className="modal-body">
-              {selectedBudget && (
-                <form>
-                  <div className="mb-3">
-                    <label htmlFor="name" className="form-label">Name</label>
-                    <input type="text" className="form-control" id="name" value={selectedBudget.name} onChange={(e) => setSelectedBudget({ ...selectedBudget, name: e.target.value })} />
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="totalIncome" className="form-label">Total Income</label>
-                    <input type="number" className="form-control" id="totalIncome" value={selectedBudget.totalIncome} onChange={(e) => setSelectedBudget({ ...selectedBudget, totalIncome: e.target.value })} />
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="totalExpenditure" className="form-label">Total Expenditure</label>
-                    <input type="number" className="form-control" id="totalExpenditure" value={selectedBudget.totalExpenditure} onChange={(e) => setSelectedBudget({ ...selectedBudget, totalExpenditure: e.target.value })} />
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="wallet" className="form-label">Wallet</label>
-                    <select className="form-select" id="wallet" onChange={(e) => setSelectedBudget({ ...selectedBudget, walletId: e.target.value })} required>
-                      <option disabled>Select Wallet</option>
-                      {userWalletList && userWalletList.map((wallet, index) => (
-                        <option key={index} value={wallet.id}>{wallet.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-3">
-                    <label htmlFor="budgetCategory" className="form-label">Budget Category</label>
-                    <select className="form-select" id="budgetCategory" value={selectedBudget.budgetCategory} onChange={(e) => setSelectedBudget({ ...selectedBudget, categoryId: e.target.value })} required>
-                      <option disabled>Select Budget Category</option>
-                      {budgetCategoriesList && budgetCategoriesList.map((category, index) => (
-                        <option key={index} value={category.id}>{category.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </form>
-              )}
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-success" onClick={()=>handleSaveBudgetChanges(selectedBudget)}>Save</button>
-                <button type="button" className="btn btn-danger" onClick={handleCancelEdit}>Cancel</button>
+        {showEditModal && (
+          <div className="modal fade show" tabIndex="-1" style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Edit Budget</h5>
+                  <button type="button" className="btn-close" aria-label="Close" onClick={handleCancelEdit}></button>
+                </div>
+                <div className="modal-body">
+                {selectedBudget && (
+                  <form>
+                    <div className="mb-3">
+                      <label htmlFor="name" className="form-label">Name</label>
+                      <input type="text" className="form-control" id="name" value={selectedBudget.name} onChange={(e) => setSelectedBudget({ ...selectedBudget, name: e.target.value })} />
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="totalIncome" className="form-label">Total Income</label>
+                      <input type="number" className="form-control" id="totalIncome" value={selectedBudget.totalIncome} onChange={(e) => setSelectedBudget({ ...selectedBudget, totalIncome: e.target.value })} />
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="totalExpenditure" className="form-label">Total Expenditure</label>
+                      <input type="number" className="form-control" id="totalExpenditure" value={selectedBudget.totalExpenditure} onChange={(e) => setSelectedBudget({ ...selectedBudget, totalExpenditure: e.target.value })} />
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="wallet" className="form-label">Wallet</label>
+                      <select className="form-select" id="wallet" onChange={(e) => setSelectedBudget({ ...selectedBudget, walletId: e.target.value })} required>
+                        <option disabled>Select Wallet</option>
+                        {userWalletList && userWalletList.map((wallet, index) => (
+                          <option key={index} value={wallet.id}>{wallet.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mb-3">
+                      <label htmlFor="budgetCategory" className="form-label">Budget Category</label>
+                      <select className="form-select" id="budgetCategory" value={selectedBudget.budgetCategory} onChange={(e) => setSelectedBudget({ ...selectedBudget, categoryId: e.target.value })} required>
+                        <option disabled>Select Budget Category</option>
+                        {budgetCategoriesList && budgetCategoriesList.map((category, index) => (
+                          <option key={index} value={category.id}>{category.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </form>
+                )}
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-success" onClick={()=>handleSaveBudgetChanges(selectedBudget)}>Save</button>
+                  <button type="button" className="btn btn-danger" onClick={handleCancelEdit}>Cancel</button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-      
-      {showDeleteConfirmation && (
+        )}
+
+        {showDetails && selectedBudget && (
+        <>
+          {console.log(selectedBudget)}
+          <div
+            className="modal fade show"
+            tabIndex="-1"
+              style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content" >
+                <div className="modal-header" style={selectedBudget.remainingBalance < 0 ? { backgroundColor: 'rgba(255, 193, 7, 0.7)' } : {}}>
+                  <h5 className="modal-title">Budget detials</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    aria-label="Close"
+                    onClick={handleCancelDetails}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <table className="table ">
+                    <thead>
+                      <tr>
+                        <td><strong>Name</strong></td>
+                        <td><strong>Category</strong></td>
+                        <td><strong>Maximum</strong></td>
+                        <td><strong>Current</strong></td>
+                        <td><strong>Left</strong></td>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{selectedBudget.name}</td>
+                        <td>{selectedBudget.budgetCategoryName}</td>
+                        <td>{selectedBudget.totalIncome}</td>
+                        <td>{selectedBudget.totalExpenditure}</td>
+                        <td>{selectedBudget.remainingBalance}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <label>
+                    Transactions
+                  </label>
+                  {!budgetTransactions || budgetTransactions.length === 0 && (
+                    <>
+                      <div className="alert alert-danger" style={{ marginTop: "10px" }} role="alert">
+                        No transactions found for this budget.
+                      </div>
+                    </>
+                  )}
+                  {budgetTransactions && (
+                    <>
+                    <div className="mb-3" style={{height: '30vh', overflowY: 'auto'}}>
+                      {budgetTransactions.map((transaction, index) => (
+                        <p key={index} className="transaction border rounded p-2 m-2">
+                          Title: {transaction.title} <br/>
+                          Amount: {transaction.amount} <br/>
+                          Date: {transaction.date}
+                        </p>
+                      ))}
+                    </div>
+                    <div className="">
+                      <button onClick={() => handleRedirectToNewTransaction(selectedBudget.walletId)} className="btn btn-success btn-sm me-2">Add transaction</button>        
+                    </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+        )}
+
+        {showDeleteConfirmation && (
         <div className="modal fade show" tabIndex="-1" style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
@@ -423,8 +515,7 @@ function Budget() {
             </div>
           </div>
         </div>
-      )}
-
+        )}
         {alertDanger != null ? (
         <div className="alert alert-danger" style={{ marginTop: "10px" }} role="alert">
             {alertDanger}

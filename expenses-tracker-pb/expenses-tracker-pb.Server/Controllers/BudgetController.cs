@@ -45,28 +45,6 @@ namespace _2023pz_trrepo.Controllers
             return Ok(budgetCategoriesList);
         }
 
-        private double CalculateTotalIncome(Wallet wallet)
-        {
-
-            if (wallet == null || wallet.Incomes == null)
-                return 0;
-
-            double totalIncome = wallet.Incomes.Sum(i => i.Amount);
-
-            return totalIncome;
-        }
-
-        private double CalculateTotalExpenditure(Wallet wallet)
-        {
-
-            if (wallet == null || wallet.Expenditures == null)
-                return 0;
-
-            double totalExpenditure = wallet.Expenditures.Sum(i => i.Amount);
-
-            return totalExpenditure;
-        }
-
         [HttpPost("createBudget")]
         public async Task<IActionResult> CreateBudget([FromBody] CreateBudgetDto budgetDetails)
         {
@@ -123,7 +101,9 @@ namespace _2023pz_trrepo.Controllers
                 TotalExpenditure = b.TotalExpenditure,
                 RemainingBalance = b.RemainingBalance,
                 WalletName = b.Wallet.Name,
-                BudgetCategoryName = b.BudgetCategory.Name
+                WalletId = b.Wallet.Id,
+                BudgetCategoryName = b.BudgetCategory.Name,
+                BudtedCategoryId = b.BudgetCategory.Id
             }).ToList();
 
             return Ok(budgetDtos);
@@ -207,6 +187,32 @@ namespace _2023pz_trrepo.Controllers
 
             return Ok(negativeBudgets);
         }
+
+        [HttpGet("budgetTransactions/{budgetId}")]
+        public async Task<IActionResult> GetBudgetTransactions(long budgetId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return NotFound("User does not exist!");
+
+            var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id.Equals(userId));
+            var budget = await _dbContext.Budgets
+                .Include(b => b.Wallet)
+                .Include(b => b.BudgetCategory)
+                .FirstOrDefaultAsync(x => x.Id == budgetId && x.Owner == user);
+
+            if (budget == null)
+                return NotFound("Budget not found or you do not have permission to view it.");
+
+            var transactions = await _dbContext.Expenditures
+                .Where(t => t.Wallet == budget.Wallet && t.Category == budget.BudgetCategory)
+                .ToListAsync();
+
+            if (transactions == null)
+                return NotFound("No transactions for selected budget.");
+
+            return Ok(transactions);
+        }
         public class CreateBudgetDto
         {
             public string name { get; set; }
@@ -223,7 +229,9 @@ namespace _2023pz_trrepo.Controllers
             public double TotalExpenditure { get; set; }
             public double RemainingBalance { get; set; }
             public string WalletName { get; set; }
+            public long WalletId { get; set; }
             public string BudgetCategoryName { get; set; }
+            public long BudtedCategoryId { get; set; }
         }
     }
 }

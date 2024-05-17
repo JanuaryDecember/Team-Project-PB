@@ -9,7 +9,7 @@ public class User : IdentityUser
     public ICollection<Wallet> Wallets { get; set; }
 
     // Email authentication
-    public bool EmailTwoFactorAuthenticationEnabled {  get; set; }
+    public bool EmailTwoFactorAuthenticationEnabled { get; set; }
     public string? EmailTwoFactorAuthenticationCode { get; set; }
     public DateTime? EmailTwoFactorAuthenticationExpiryTime { get; set; }
     public DateTime? LastEmailTwoFactorAuthenticationCodeSent { get; set; }
@@ -24,8 +24,8 @@ public class User : IdentityUser
     public SecurityQuestion? SecurityQuestion { get; set; }
     public string? SecurityQuestionAnswer { get; set; }
 
-    //[Column(TypeName = "varbinary(max)")]
-    //w postgersql nie ma typu varbinary(max) zamiast tego jest bytea, na potrzeby testów zamieniłem ten kod na bytea
     [Column(TypeName = "varbinary(max)")]
+    //w postgersql nie ma typu varbinary(max) zamiast tego jest bytea, na potrzeby testów zamieniłem ten kod na bytea
+   // [Column(TypeName = "bytea")]
     public byte[]? ProfilePicture { get; set; }
 }

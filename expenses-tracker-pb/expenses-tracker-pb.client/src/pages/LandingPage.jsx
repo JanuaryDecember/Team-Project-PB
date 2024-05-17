@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import LoginForm from '../components/LoginForm';
 import { Link, useNavigate } from 'react-router-dom';
+import translation from './../assets/translation.json';
 
 
 
-const LandingPage = () => {
+const LandingPage = (props) => {
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -44,19 +45,17 @@ const LandingPage = () => {
     return (
 
         <div className="container mt-4">
-            <LoginForm onLogin={handleLogin} />
+            <LoginForm onLogin={handleLogin} language={props.language} setLanguage={props.setLanguage} />
             <div className="d-flex flex-column align-items-center justify-content-center">
                 <strong>
-                    <p className="my-text"> If you don't have an account, you can register here:</p>
+                    <p className="my-text">{translation[props.language]?.LandingPage.NoAcc}</p>
                 </strong>
-                <Link to="/register" className="btn btn-primary">Register</Link>
+                <Link to="/register" className="btn btn-primary">{translation[props.language]?.Utils.RegisterBtn}</Link>
             </div>
             <div className="mt-5">
                 <div className="my-card h-100 w-100 mx-auto">
                     <img className="my-icons" src='https://cdn-icons-png.flaticon.com/128/4256/4256662.png' alt="Icon" />
-                    <p className="my-card-text">
-                        The Expense Tracker Application is designed to help you effectively manage your finances with ease. Whether you're tracking daily expenses,
-                        managing multiple wallets, or organizing your financial transactions, this application provides a comprehensive solution for your financial management needs.</p>
+                    <p className="my-card-text">{translation[props.language]?.LandingPage.Desc}</p>
                 </div>
             </div>
         </div>
