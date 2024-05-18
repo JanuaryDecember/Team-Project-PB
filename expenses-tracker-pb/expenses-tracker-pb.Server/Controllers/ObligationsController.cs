@@ -59,7 +59,7 @@ namespace expenses_tracker_api.Controllers
                     obligation.CategoryId = category.Id;
                 }
 
-                if (obligationRequest.CategoryRepaymentId.HasValue) 
+                if (obligationRequest.CategoryRepaymentId.HasValue)
                 {
                     var categoryRepayment = await _dbContext.Categories.FindAsync(obligationRequest.CategoryRepaymentId);
                     if (categoryRepayment == null)
@@ -283,7 +283,7 @@ namespace expenses_tracker_api.Controllers
             return userId;
         }
 
-     
+
         [HttpPost("user")]
         public IActionResult IsUserLogged()
         {
@@ -343,6 +343,48 @@ namespace expenses_tracker_api.Controllers
                 Console.WriteLine(ex.ToString());
                 return StatusCode(500, "Error fetching categories");
             }
+        }
+        [Authorize]
+        [HttpGet("getRepayments/{obligationId}")]
+        public async Task<IActionResult> GetRepayments(int obligationId)
+        {
+            var repayments = await _dbContext.RepayEntries
+                .Where(r => r.Obligation.Id == obligationId)
+                .ToListAsync();
+
+            return Ok(repayments);
+        }
+        [Authorize]
+        [HttpGet("getObligation/{obligationId}")]
+        public async Task<IActionResult> GetObligation(long obligationId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized("Session ended! Sign in again");
+            }
+
+            var user = await _dbContext.Users
+                .Include(u => u.Wallets)
+                    .ThenInclude(w => w.Obligations)
+                        .ThenInclude(o => o.Category)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return Unauthorized("User not found");
+            }
+
+            var obligation = user.Wallets
+                .SelectMany(w => w.Obligations)
+                .FirstOrDefault(o => o.Id == obligationId);
+
+            if (obligation == null)
+            {
+                return NotFound("Obligation not found");
+            }
+
+            return Ok(new ObligationDTO(obligation, getPaidAmount(obligation.Id)));
         }
 
     }

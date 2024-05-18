@@ -17,6 +17,9 @@ const ObligationsPage = () => {
     const [selectedCategory, setSelectedCategory] = useState("");
     const [alertMessage, setAlertMessage] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [showRepaymentsModal, setShowRepaymentsModal] = useState(false);
+    const [selectedObligationRepayments, setSelectedObligationRepayments] = useState([]);
+    const [selectedObligationDetails, setSelectedObligationDetails] = useState({});
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -155,6 +158,29 @@ const ObligationsPage = () => {
         setShowAddForm(!showAddForm);
     };
 
+    const fetchRepayments = async (obligationId) => {
+        try {
+            const response = await fetch(`/api/obligation/getRepayments/${obligationId}`);
+            if (response.ok) {
+                const data = await response.json();
+                const obligationResponse = await fetch(`/api/obligation/getObligation/${obligationId}`);
+                const obligationData = await obligationResponse.json();
+                setSelectedObligationRepayments(data);
+                setSelectedObligationDetails(obligationData);
+                setShowRepaymentsModal(true);
+            } else {
+                throw new Error("Failed to fetch repayments");
+            }
+        } catch (error) {
+            console.error("Error fetching repayments:", error);
+            showFailedAlert('Error fetching repayments!');
+        }
+    };
+
+    const handleCloseRepaymentsModal = () => {
+        setShowRepaymentsModal(false);
+    };
+
     return (
         <div className="container mt-5">
             <>
@@ -176,6 +202,7 @@ const ObligationsPage = () => {
                             style={{ minWidth: "30%" }}
                         >
                             <div className="card h-100 w-100 text-center">
+                                <button className="btn btn-dark position-absolute top-0 start-0" onClick={() => fetchRepayments(obligation.id)}>Details</button>
                                 {selectedObligationId === obligation.id ? (
                                     <React.Fragment>
                                         <div className="row mb-3">
@@ -261,8 +288,10 @@ const ObligationsPage = () => {
                                                 </div>
                                             </div>
                                         )}
-                                        <button className="btn btn-dark" style={{ marginTop: "5px" }} onClick={() => handleEdit(obligation.id)}>Edit</button>
-                                        <button className="btn btn-danger" style={{ marginTop: "5px" }} onClick={() => handleDelete(obligation.id)}>Delete</button>
+                                        <div className="d-flex justify-content-center mt-2">
+                                            <button className="btn btn-warning mx-1" onClick={() => handleEdit(obligation.id)}>Edit</button>
+                                            <button className="btn btn-danger mx-1" onClick={() => handleDelete(obligation.id)}>Delete</button>
+                                        </div>
                                     </React.Fragment>
                                 )}
                             </div>
@@ -274,6 +303,43 @@ const ObligationsPage = () => {
                         {alertMessage}
                     </div>
                 )}
+                <div className="modal" tabIndex="-1" role="dialog" style={{ display: showRepaymentsModal ? 'block' : 'none' }}>
+                    <div className="modal-dialog" role="document">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Obligation Details</h5>
+                                <button type="button" className="btn-close" aria-label="Close" onClick={handleCloseRepaymentsModal}></button>
+                            </div>
+                            <div className="modal-body" style={{ maxHeight: "300px", overflowY: "auto" }}>
+                                <div className="row border border-2 rounded">
+                                    <div className="col-md-6">
+                                        <p><strong>Name:</strong> {selectedObligationDetails.name}</p>
+                                        <p><strong>Amount:</strong> {selectedObligationDetails.amount}</p>
+                                        <p><strong>Category:</strong> {selectedObligationDetails.category?.name}</p>
+                                    </div>
+                                    <div className="col-md-6">
+                                        <p><strong>Description:</strong> {selectedObligationDetails.description}</p>
+                                        <p><strong>Start Date:</strong> {new Date(selectedObligationDetails.startDate).toLocaleDateString()}</p>
+                                        <p><strong>Due Date:</strong> {new Date(selectedObligationDetails.dueDate).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                                <h5 style={{ marginTop: "10px" }}>Repayments</h5>
+                                <ul className="list-group">
+                                    {selectedObligationRepayments.map((repayment, index) => (
+                                        <li key={index} className="list-group-item">
+                                            <h5 className="mb-1">Repayment {index + 1}</h5>
+                                            <p className="mb-1">Amount: {repayment.amount}</p>
+                                            <p className="mb-1">Date: {new Date(repayment.addDate).toLocaleDateString()}</p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={handleCloseRepaymentsModal}>Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </>
         </div>
     );
