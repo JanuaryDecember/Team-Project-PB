@@ -1063,7 +1063,28 @@ public class TransactionsController : ControllerBase
             }
 
             existingCategory.Name = updatedCategory.Name;
-            existingCategory.Type = updatedCategory.Type;
+
+
+            if (existingCategory.Type != updatedCategory.Type)
+            {
+                // Check if there is any income with this id
+                var incomes = _dbContext.Incomes.Where( i => i.CategoryId == existingCategory.Id).ToList();
+                foreach (var income in incomes)
+                {
+                    income.CategoryId = null;
+                    income.Category = null;
+                }
+                // Check if there is any expenditure with this id
+                var expenditures = _dbContext.Expenditures.Where(i => i.CategoryId == existingCategory.Id).ToList();
+                foreach (var expenditure in expenditures)
+                {
+                    expenditure.CategoryId = null;
+                    expenditure.Category = null;
+                }
+
+                existingCategory.Type = updatedCategory.Type;
+            }
+           
 
             _dbContext.Categories.Update(existingCategory);
             await _dbContext.SaveChangesAsync();
