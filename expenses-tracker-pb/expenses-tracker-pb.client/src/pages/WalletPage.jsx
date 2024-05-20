@@ -2,8 +2,9 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Site.css";
+import translation from "../assets/translation.json";
 
-const WalletPage = () => {
+const WalletPage = (props) => {
     const [walletName, setWalletName] = useState("");
     const [walletFormError, setWalletFormError] = useState("");
     const [wallets, setWallets] = useState([]);
@@ -12,6 +13,9 @@ const WalletPage = () => {
     let editMode = false;
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [alertMessage, setAlertMessage] = useState("");
+    const storedUser = localStorage.getItem('user');
+    const user = storedUser ? JSON.parse(storedUser) : null;
+
 
     useEffect(() => {
         const checkUserLogin = async () => {
@@ -48,7 +52,7 @@ const WalletPage = () => {
     const handleWalletClick = async (walletId) => {
         if (deleteMode) {
             document.getElementById("jd").setAttribute("hidden", true);
-            if (window.confirm("Are you sure you want to delete this wallet?")) {
+            if (window.confirm(translation[props.language].WalletPage.DeleteConfirm)) {
                 let response = await fetch("/api/account/removeWallet/" + walletId, {
                     method: "DELETE",
                     headers: {
@@ -64,11 +68,11 @@ const WalletPage = () => {
         } else if (editMode) {
             document.getElementById("jd").setAttribute("hidden", true);
             editMode = false;
-            let newName = window.prompt("Choose name for wallet:", "");
+            let newName = window.prompt(translation[props.language].WalletPage.ChooseName, "");
             if (!newName == null || !newName == "") {
                 if (
                     window.confirm(
-                        "Are you sure you want to change your wallet name to " +
+                        translation[props.language].WalletPage.NameConfirm +
                         newName +
                         "?"
                     )
@@ -153,7 +157,7 @@ const WalletPage = () => {
                         deleteMode = !deleteMode;
                         editMode = false;
                         document.getElementById("jdH1").textContent =
-                            "Click on wallet to delete it";
+                            translation[props.language].WalletPage.DeleteChoose;
                         const jd = document.getElementById("jd");
                         if (deleteMode && jd.hasAttribute("hidden")) {
                             jd.removeAttribute("hidden");
@@ -162,7 +166,7 @@ const WalletPage = () => {
                         }
                     }}
                 >
-                    Delete wallet
+                    {translation[props.language].WalletPage.DeleteWallet}
                 </button>
                 <button
                     className="btn btn-secondary mx-1 mh-50 w-25"
@@ -170,7 +174,7 @@ const WalletPage = () => {
                         editMode = !editMode;
                         deleteMode = false;
                         document.getElementById("jdH1").textContent =
-                            "Click on wallet to update name";
+                            translation[props.language].WalletPage.EditSelect;
                         const jd = document.getElementById("jd");
                         if (editMode && jd.hasAttribute("hidden")) {
                             jd.removeAttribute("hidden");
@@ -179,7 +183,7 @@ const WalletPage = () => {
                         }
                     }}
                 >
-                    Edit wallet
+                    {translation[props.language].WalletPage.EditWallet}
                 </button>
             </div>
             <div id="jd" hidden={true}>
@@ -210,7 +214,7 @@ const WalletPage = () => {
             </div>
             <div className="card w-50 h-auto m-auto mb-5 p-3 pt-3">
                 <form onSubmit={submitNewWallet} className="row w-100 g-3">
-                    <h5>Add new wallet</h5>
+                    <h5>{translation[props.language].WalletPage.AddWallet}</h5>
 
                     <input
                         type="text"
@@ -218,14 +222,14 @@ const WalletPage = () => {
                         id="walletName"
                         value={walletName}
                         onChange={(e) => setWalletName(e.target.value)}
-                        placeholder="Enter new wallet name"
+                        placeholder={translation[props.language].WalletPage.AddPlaceholder}
                         required
                     />
                     {walletFormError && (
                         <div className="col-md-12 error">{walletFormError}</div>
                     )}
                     <button type="submit" className="btn btn-primary col-12">
-                        Add
+                        {translation[props.language].WalletPage.AddButton}
                     </button>
                 </form>
             </div>

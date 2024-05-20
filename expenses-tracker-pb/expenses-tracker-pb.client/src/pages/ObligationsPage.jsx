@@ -3,8 +3,9 @@ import { useParams } from "react-router-dom";
 import ObligationForm from "../components/ObligationForm";
 import { useNavigate } from "react-router-dom";
 import { showSuccessAlert, showFailedAlert, showWarningAlert } from "../components/ToastifyAlert";
+import translation from "../assets/translation.json";
 
-const ObligationsPage = () => {
+const ObligationsPage = (props) => {
     const { walletId } = useParams();
     const [obligations, setObligations] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -26,7 +27,7 @@ const ObligationsPage = () => {
 
     useEffect(() => {
         if (!isLoggedIn) {
-            setAlertMessage("You are not logged in. Redirecting to login page...");
+            setAlertMessage(translation[props.language].Categories.NotLoggedIn);
             const redirectTimer = setTimeout(() => {
                 navigate("/");
             }, 3000);
@@ -96,11 +97,11 @@ const ObligationsPage = () => {
                     return obligation;
                 }
             });
-            showSuccessAlert('Obligation added successfully!')
+            showSuccessAlert(translation[props.language].Obligations.AddedAlert)
             setObligations(updatedObligations);
             setSelectedObligationId(null);
         } catch (error) {
-            showFailedAlert('Error saving obligation!')
+            showFailedAlert(translation[props.language].Obligations.FailedSaving)
             console.error("Error saving obligation:", error);
         }
     };
@@ -113,10 +114,10 @@ const ObligationsPage = () => {
             if (!response.ok) {
                 throw new Error("Failed to delete obligation");
             }
-            showSuccessAlert('Obligation deleted successfully!')
+            showSuccessAlert(translation[props.language].Obligations.DeletedAlert)
             setObligations(obligations.filter(obligation => obligation.id !== obligationId));
         } catch (error) {
-            showFailedAlert('Error deleting obligation!')
+            showFailedAlert(translation[props.language].Obligations.FailedDeleting)
             console.error("Error deleting obligation:", error);
         }
     };
@@ -143,7 +144,7 @@ const ObligationsPage = () => {
                     throw new Error("Failed to repay obligation");
                 }
             } catch (error) {
-                showFailedAlert('Error repaying obligation!')
+                showFailedAlert(translation[props.language].Obligations.FailedRepaying)
                 console.error("Error repaying obligation:", error);
             }
         }
@@ -158,15 +159,15 @@ const ObligationsPage = () => {
     return (
         <div className="container mt-5">
             <>
-                <h2>Obligations</h2>
-                <button className="btn btn-primary" style={{ marginTop: "10px" }} onClick={handleToggleAddForm}>Add Obligation</button>
-                {showAddForm && <ObligationForm walletId={walletId} refreshObligationsList={fetchObligations} />}
-                <h3 style={{ marginTop: "20px" }}>Filter:</h3>
+                <h2>{translation[props.language].Obligations.Obligations}</h2>
+                <button className="btn btn-primary" style={{ marginTop: "10px" }} onClick={handleToggleAddForm}>{translation[props.language].Obligations.AddObligation}</button>
+                {showAddForm && <ObligationForm walletId={walletId} refreshObligationsList={fetchObligations} props={props} />}
+                <h3 style={{ marginTop: "20px" }}>{translation[props.language].TransactionsPage.Filter}</h3>
                 <select className="form-select" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-                    <option value="">All Categories</option>
-                    <option value="Credit">Credit</option>
+                    <option value="">{translation[props.language].Obligations.AllCategories}</option>
+                    <option value="Credit">{translation[props.language].Obligations.Credit}</option>
                     <option value="Leasing">Leasing</option>
-                    <option value="Fees">Fees</option>
+                    <option value="Fees">{translation[props.language].Obligations.Fees}</option>
                 </select>
                 <div className="row my-3">
                     {obligations.map((obligation, index) => (
@@ -180,7 +181,7 @@ const ObligationsPage = () => {
                                     <React.Fragment>
                                         <div className="row mb-3">
                                             <div className="col-md-6">
-                                                <label className="form-label">Name:</label>
+                                                <label className="form-label">{translation[props.language].Obligations.Name}</label>
                                                 <input
                                                     type="text"
                                                     className="form-control"
@@ -193,7 +194,7 @@ const ObligationsPage = () => {
                                                 />
                                             </div>
                                             <div className="col-md-6">
-                                                <label className="form-label">Amount:</label>
+                                                <label className="form-label">{translation[props.language].Obligations.Amount}</label>
                                                 <input
                                                     type="number"
                                                     className="form-control"
@@ -208,7 +209,7 @@ const ObligationsPage = () => {
                                         </div>
                                         <div className="row mb-3">
                                             <div className="col-md-6">
-                                                <label className="form-label">Start Date:</label>
+                                                <label className="form-label">{translation[props.language].Obligations.StDate}</label>
                                                 <input
                                                     type="date"
                                                     className="form-control"
@@ -221,7 +222,7 @@ const ObligationsPage = () => {
                                                 />
                                             </div>
                                             <div className="col-md-6">
-                                                <label className="form-label">Due Date:</label>
+                                                <label className="form-label">{translation[props.language].Obligations.DueDate}</label>
                                                 <input
                                                     type="date"
                                                     className="form-control"
@@ -234,18 +235,18 @@ const ObligationsPage = () => {
                                                 />
                                             </div>
                                         </div>
-                                        <button className="btn btn-dark" onClick={() => handleSave(obligation.id, obligation)}>Save</button>
+                                        <button className="btn btn-dark" onClick={() => handleSave(obligation.id, obligation)}>{translation[props.language].Obligations.Save}</button>
                                     </React.Fragment>
                                 ) : (
                                     <React.Fragment>
                                         <h2 className="w-75">{obligation.name}</h2>
                                         <h5>{obligation.amount}</h5>
-                                        <h5>Category: {obligation.category.name}</h5>
-                                        <h5>Start Date: {new Date(obligation.startDate).toLocaleDateString()}</h5>
-                                        <h5>Due Date: {new Date(obligation.dueDate).toLocaleDateString()}</h5>
-                                        <h5>Progress: {`${(repaidAmounts[obligation.id] || 0) + obligation.paidAmount}/${obligation.amount}`}</h5>
+                                            <h5>{translation[props.language].Obligations.Category} {obligation.category.name}</h5>
+                                            <h5>{translation[props.language].Obligations.StDate} {new Date(obligation.startDate).toLocaleDateString()}</h5>
+                                            <h5>{translation[props.language].Obligations.DueDate} {new Date(obligation.dueDate).toLocaleDateString()}</h5>
+                                            <h5>{translation[props.language].Obligations.Progress} {`${(repaidAmounts[obligation.id] || 0) + obligation.paidAmount}/${obligation.amount}`}</h5>
                                         {!obligation.editing && repayObligationId !== obligation.id && (
-                                            <button className="btn btn-primary" onClick={() => handleRepay(obligation.id)}>Repay</button>
+                                                <button className="btn btn-primary" onClick={() => handleRepay(obligation.id)}>{translation[props.language].Obligations.Repay}</button>
                                         )}
                                         {repayObligationId === obligation.id && !obligation.editing && (
                                             <div>
@@ -253,16 +254,16 @@ const ObligationsPage = () => {
                                                     type="number"
                                                     value={repayAmount}
                                                     onChange={(e) => setRepayAmount(e.target.value)}
-                                                    placeholder="Enter amount"
+                                                        placeholder={translation[props.language].Obligations.EnterAmount}
                                                     className="form-control"
                                                 />
                                                 <div style={{ marginTop: "10px" }}>
-                                                    <button className="btn btn-primary" onClick={() => handleConfirm(obligation.id)}>Confirm</button>
+                                                        <button className="btn btn-primary" onClick={() => handleConfirm(obligation.id)}>{translation[props.language].Obligations.Confirm}</button>
                                                 </div>
                                             </div>
                                         )}
-                                        <button className="btn btn-dark" style={{ marginTop: "5px" }} onClick={() => handleEdit(obligation.id)}>Edit</button>
-                                        <button className="btn btn-danger" style={{ marginTop: "5px" }} onClick={() => handleDelete(obligation.id)}>Delete</button>
+                                            <button className="btn btn-dark" style={{ marginTop: "5px" }} onClick={() => handleEdit(obligation.id)}>{translation[props.language].Obligations.Edit}</button>
+                                            <button className="btn btn-danger" style={{ marginTop: "5px" }} onClick={() => handleDelete(obligation.id)}>{translation[props.language].Obligations.Delete}</button>
                                     </React.Fragment>
                                 )}
                             </div>

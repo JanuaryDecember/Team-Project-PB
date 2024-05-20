@@ -4,8 +4,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import ChartReport from '../components/ChartReport';
 import Comparison from '../components/ChartComparison';
 import '../styles/FinancialReport.css';
+import translation from "../assets/translation.json";
 
-const MonthlySummary = () => {
+const MonthlySummary = (props) => {
     const [wallets, setWallets] = useState([]);
     const [walletId, setWalletId] = useState('');
     const [walletName, setWalletName] = useState('');
@@ -18,8 +19,18 @@ const MonthlySummary = () => {
     const [transactions, setTransactions] = useState([]);
     const [dataGenerated, setDataGenerated] = useState(false);
     const [months] = useState([
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        translation[props.language].Report.January,
+        translation[props.language].Report.February,
+        translation[props.language].Report.March,
+        translation[props.language].Report.April,
+        translation[props.language].Report.May,
+        translation[props.language].Report.June,
+        translation[props.language].Report.July,
+        translation[props.language].Report.August,
+        translation[props.language].Report.September,
+        translation[props.language].Report.October,
+        translation[props.language].Report.November,
+        translation[props.language].Report.December
     ]);
     const years = [];
     const startYear = 2018;
@@ -207,7 +218,7 @@ const MonthlySummary = () => {
                     value={month}
                     onChange={(e) => setMonth(e.target.value)}
                 >
-                    <option value="All">All</option>
+                    <option value="All">{translation[props.language].Report.All}</option>
                     {months.map((month, index) => (
                         <option key={index} value={index + 1}>
                             {month}
@@ -216,9 +227,9 @@ const MonthlySummary = () => {
                 </select>
             </div>
             <div style={{ overflow: "hidden" }}>
-                <button className={activeTab === 'summary' ? 'active-tab' : 'inactive-tab'} style={{ width: "100%" }} onClick={() => setActiveTab('summary')}>Monthly Summary</button>
+                <button className={activeTab === 'summary' ? 'active-tab' : 'inactive-tab'} style={{ width: "100%" }} onClick={() => setActiveTab('summary')}>{translation[props.language].Report.MonthlySum}</button>
                 <div className="tab-divider" />
-                <button className={activeTab === 'comparison' ? 'active-tab' : 'inactive-tab'} style={{ width: "100%" }} onClick={() => setActiveTab('comparison')}>Monthly Comparison</button>
+                <button className={activeTab === 'comparison' ? 'active-tab' : 'inactive-tab'} style={{ width: "100%" }} onClick={() => setActiveTab('comparison')}>{translation[props.language].Report.MonthlyCom}</button>
 
             </div>
             {activeTab === 'summary' && (
@@ -228,18 +239,18 @@ const MonthlySummary = () => {
                     <div className="btn-container">
                         {month === 'All' ? (
                             <button className="btn btn-primary" onClick={handleGenerateClick}>
-                                Generate
+                                {translation[props.language].Report.Generate}
                             </button>
                         ) : (
                             <>
                                 <button className="btn btn-primary" style={{ marginRight: '10px' }} onClick={handleGenerateClick}>
-                                    Generate
+                                        {translation[props.language].Report.Generate}
                                 </button>
                                 <button className="btn btn-secondary" style={{ marginRight: '10px' }} onClick={handleGenerateReportClick}>
-                                    Generate Monthly Report (PDF)
+                                        {translation[props.language].Report.GeneratePDF}
                                 </button>
                                 <button className="btn btn-tertiary" onClick={handleGenerateExcelClick}>
-                                    Generate Monthly Report (Excel)
+                                        {translation[props.language].Report.GenerateExcel}
                                 </button>
                             </>
                         )}
@@ -249,11 +260,11 @@ const MonthlySummary = () => {
                         <div className="summary-section">
                             <div>
                                 <div>
-                                    <h3>Total Income: <span style={{ color: 'lightgreen' }}>{summary.totalIncome}</span></h3>
-                                    <h3>Total Expenditure: <span style={{ color: 'lightcoral' }}>{summary.totalExpenditure}</span></h3>
+                                    <h3>{translation[props.language].Report.TotalInc} <span style={{ color: 'lightgreen' }}>{summary.totalIncome}</span></h3>
+                                    <h3>{translation[props.language].Report.TotalExp} <span style={{ color: 'lightcoral' }}>{summary.totalExpenditure}</span></h3>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <h3>Net Balance: {summary.netBalance}</h3>
+                                    <h3>{translation[props.language].Report.NetBalance} {summary.netBalance}</h3>
                                 </div>
                             </div>
                             <ChartReport summary={summary} />
@@ -266,7 +277,7 @@ const MonthlySummary = () => {
                                 {summary.incomeByCategory && summary.incomeByCategory.length > 0 && (
                                     <div>
                                         <div>
-                                            <h3>Income by Category:</h3>
+                                            <h3>{translation[props.language].Report.CatInc}</h3>
                                             {summary.incomeByCategory.map((category, index) => (
                                                 <div key={index}>
                                                     <p>
@@ -281,7 +292,7 @@ const MonthlySummary = () => {
                                 {summary.expenditureByCategory && summary.expenditureByCategory.length > 0 && (
                                     <div>
                                         <div>
-                                            <h3>Expenditure by Category:</h3>
+                                            <h3>{translation[props.language].Report.CatExp}</h3>
                                             {summary.expenditureByCategory.map((category, index) => (
                                                 <div key={index}>
                                                     <p>
@@ -299,13 +310,13 @@ const MonthlySummary = () => {
                     <div className="transaction-list" style={{ display: transactions.length > 0 ? 'block' : 'none' }}>
                         {transactions.length > 0 && (
                             <div>
-                                <h3>Transactions:</h3>
+                                <h3>{translation[props.language].Report.Transactions}</h3>
                                 {transactions.map((transaction, index) => (
                                     <div key={index}>
                                         <p>
                                             {new Date(transaction.date).toLocaleDateString('pl-PL', { year: 'numeric', month: '2-digit', day: '2-digit' })} - {transaction.title} - {transaction.description} - {transaction.amount} PLN &nbsp;
                                             <span style={{ color: transaction.type === 'income' ? 'green' : 'red' }}>
-                                                ({transaction.type === 'income' ? 'Income' : 'Expenditure'})
+                                                ({transaction.type === 'income' ? translation[props.language].Report.Income : translation[props.language].Report.Expenditure})
                                             </span>
                                         </p>
                                     </div>

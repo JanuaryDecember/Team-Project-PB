@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
+import translation from "../assets/translation.json";
 
-function Export() {
+function Export(props) {
   const [selectedWallets, setSelectedWallets] = useState([]);
   const [wallets, setWallets] = useState([]);
   const [nothingSelected, setNothingSelected] = useState(null);
@@ -42,7 +43,7 @@ function Export() {
           setNumberOfIncomesArr(numberOfIncomesArr);
           setNumberOfExpendituresArr(numberOfExpendituresArr);
         } else if (response.status === 401) {
-            setAlert("You are not logged in. Redirecting to login page...");
+            setAlert(translation[props.language].Categories.NotLoggedIn);
           console.error(
             "The user is not logged in!",
             response.status,
@@ -188,15 +189,15 @@ function Export() {
   return (
     <>
       <div className="container">
-        <h2 className="mt-4">Export</h2>
+              <h2 className="mt-4">{translation[props.language].Export.Export}</h2>
         {clearAll ? (
           <button className="btn btn-secondary" onClick={handleSelectAll}>
             {" "}
-            Clear all
+                      {translation[props.language].Export.ClearAll}
           </button>
         ) : (
           <button className="btn btn-secondary" onClick={handleSelectAll}>
-            Select all
+                          {translation[props.language].Export.SelectAll}
           </button>
         )}
         <div className="table-responsive">
@@ -204,10 +205,10 @@ function Export() {
             <thead>
               <tr>
                 <th scope="col"></th>
-                <th scope="col">Name</th>
-                <th scope="col">AccountBalance</th>
-                <th scope="col">Incomes</th>
-                <th scope="col">Expenditures</th>
+                <th scope="col">{translation[props.language].Export.Name}</th>
+                              <th scope="col">{translation[props.language].Export.AccBal}</th>
+                              <th scope="col">{translation[props.language].Export.Incomes}</th>
+                              <th scope="col">{translation[props.language].Export.Expenditures}</th>
                 <th scope="col">Link</th>
               </tr>
             </thead>
@@ -240,7 +241,7 @@ function Export() {
                       className="btn btn-primary btn-sm"
                       onClick={() => seeMore(wallet.Id)}
                     >
-                      See more
+                              {translation[props.language].Export.SeeMore}
                     </button>
                   </td>
                 </tr>
@@ -249,11 +250,11 @@ function Export() {
           </table>
         </div>
         <button className="btn btn-primary" onClick={handleJsonExport}>
-          Export Wallet
+                  {translation[props.language].Export.ExportWallet}
         </button>
         {nothingSelected ? (
           <div className="alert alert-danger" role="alert">
-            No portfolio has been selected for export!
+                      {translation[props.language].Export.Alert}
           </div>
         ) : undefined}
         {alert != null ? (

@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
+import translation from "../assets/translation.json";
 
-function Import() {
+function Import(props) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [wallets, setWallets] = useState(null);
   const [selectedWalletsID, setselectedWalletsID] = useState([]);
@@ -119,7 +120,7 @@ function Import() {
 
   function handleImport() {
     if (selectedWalletsID.length === 0) {
-      setAlertDanger("No wallets selected to import! Select some!");
+        setAlertDanger(translation[props.language].Import.AlertDanger);
       return;
     }
 
@@ -174,11 +175,11 @@ function Import() {
             {clearAll ? (
               <button className="btn btn-secondary" onClick={handleSelectAll}>
                 {" "}
-                Clear all
+                              {translation[props.language].Import.ClearAll}
               </button>
             ) : (
               <button className="btn btn-secondary" onClick={handleSelectAll}>
-                Select all
+                                  {translation[props.language].Import.SelectAll}
               </button>
             )}
 
@@ -188,10 +189,10 @@ function Import() {
                   <tr>
                     <th scope="col"></th>
                     {/* <th scope="col">Icon</th> */}
-                    <th scope="col">Name</th>
-                    <th scope="col">AccountBalance</th>
-                    <th scope="col">Incomes</th>
-                    <th scope="col">Expenditures</th>
+                                      <th scope="col">{translation[props.language].Import.Name}</th>
+                                      <th scope="col">{translation[props.language].Import.AccBal}</th>
+                                      <th scope="col">{translation[props.language].Import.Incomes}</th>
+                                      <th scope="col">{translation[props.language].Import.Expenditures}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -223,7 +224,7 @@ function Import() {
               </table>
             </div>
             <button className="btn btn-primary" onClick={handleImport}>
-              Import Selected Wallets
+                          {translation[props.language].Import.ImportSelected}
             </button>
           </>
         )}

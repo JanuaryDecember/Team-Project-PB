@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from "react-router-dom";
+import translation from "../../assets/translation.json";
 
-const TwoFactorAuthentication = () => {
+const TwoFactorAuthentication = (props) => {
 
     const navigate = useNavigate();
     const [isLoggedIn, setIsLoggedIn] = useState(true);
@@ -21,6 +22,9 @@ const TwoFactorAuthentication = () => {
     const [securityQuestions, setSecurityQuestions] = useState([]);
     const [selectedQuestion, setSelectedQuestion] = useState('');
     const [answer, setAnswer] = useState('');
+
+    const disabledText = translation[props.language].TwoFactor.Disabled; 
+    const enabledText = translation[props.language].TwoFactor.Enabled; 
 
     // Enable authentication functions
     const enableGoogleAuthentication = async (status) => {
@@ -216,7 +220,7 @@ const TwoFactorAuthentication = () => {
                 setQuestionAuthenticationStatus(false);
                 updateQuestionAuthenticationStatus(false);
             } else {
-                setQuestionAuthenticationAlertMessage("Answer is incorrect");
+                setQuestionAuthenticationAlertMessage(translation[props.language].TwoFactor.Incorrect);
                 throw new Error('Failed to fetch data');
             }
         } catch (error) {
@@ -232,10 +236,10 @@ const TwoFactorAuthentication = () => {
                 spinner.remove();
 
             if (status === true) {
-                document.getElementsByClassName('status-info')[0].innerHTML = "<div class=\"h5 text-success\">Enabled</div>";
+                document.getElementsByClassName('status-info')[0].innerHTML = `<div class=\"h5 text-success\">${enabledText}</div>`;
             }
             else if (status === false) {
-                document.getElementsByClassName('status-info')[0].innerHTML = "<div class=\"h5 text-danger\">Disabled</div>";
+                document.getElementsByClassName('status-info')[0].innerHTML = `<div class=\"h5 text-danger\">${disabledText}</div>`;
             }
         }
     };
@@ -246,10 +250,10 @@ const TwoFactorAuthentication = () => {
                 spinner.remove();
 
             if (status === true) {
-                document.getElementsByClassName('email-authentication-status-info')[0].innerHTML = "<div class=\"h5 text-success\">Enabled</div>";
+                document.getElementsByClassName('email-authentication-status-info')[0].innerHTML = `<div class=\"h5 text-success\">${enabledText}</div>`;
             }
             else if (status === false) {
-                document.getElementsByClassName('email-authentication-status-info')[0].innerHTML = "<div class=\"h5 text-danger\">Disabled</div>";
+                document.getElementsByClassName('email-authentication-status-info')[0].innerHTML = `<div class=\"h5 text-danger\">${disabledText}</div>`;
             }
         }
     };
@@ -260,10 +264,10 @@ const TwoFactorAuthentication = () => {
                 spinner.remove();
 
             if (status === true) {
-                document.getElementsByClassName('question-authentication-status-info')[0].innerHTML = "<div class=\"h5 text-success\">Enabled</div>";
+                document.getElementsByClassName('question-authentication-status-info')[0].innerHTML = `<div class=\"h5 text-success\">${enabledText}</div>`;
             }
             else if (status === false) {
-                document.getElementsByClassName('question-authentication-status-info')[0].innerHTML = "<div class=\"h5 text-danger\">Disabled</div>";
+                document.getElementsByClassName('question-authentication-status-info')[0].innerHTML = `<div class=\"h5 text-danger\">${disabledText}</div>`;
             }
         }
     };
@@ -460,7 +464,7 @@ const TwoFactorAuthentication = () => {
         <div className="container mt-5">
             {/* Header */}
             <div className="row text-center">
-                <h1>Two-Factor Authentication</h1>
+                <h1>{translation[props.language].TwoFactor.TwoFactor}</h1>
             </div>  <hr></hr>
 
             {/* Google Authentication */}
@@ -473,7 +477,7 @@ const TwoFactorAuthentication = () => {
                 </div>
                 <div className="col-8 status-info">
                     <div className="spinner-border" role="status">
-                        <span className="visually-hidden">Loading...</span>
+                        <span className="visually-hidden">{translation[props.language].TwoFactor.Loading}</span>
                     </div>
                 </div>
             </div> <hr style={{ border: "1px dashed black" }}></hr>
@@ -484,32 +488,32 @@ const TwoFactorAuthentication = () => {
                         <figcaption className="figure-caption text-center"></figcaption>
                     </div>
                     <div className="col-10 align-items-center">
-                        <h4>How to Enable</h4>
+                        <h4>{translation[props.language].TwoFactor.HowTo}</h4>
                         <ol>
-                            <li>Download and install the Google Authenticator app from the app store on your mobile device. This app will generate codes for your 2FA.</li>
-                            <li>Open the Authenticator app and choose the option to add a new account. Use the app to scan the provided QR code or manually enter the secret key provided.</li>
-                            <li>Once the QR code is scanned or the secret key is entered, the app will generate a unique code for your account. Enter this code on the website to confirm setup.</li>
+                            <li>{translation[props.language].TwoFactor.HowToLine1}</li>
+                            <li>{translation[props.language].TwoFactor.HowToLine2}</li>
+                            <li>{translation[props.language].TwoFactor.HowToLine3}</li>
                         </ol>
                     </div>
                 </div>
             ) : (
                 <div className="row mb-2">
-                    <div>
-                        <p>Your Two-Factor Authentication is currently active.</p>
-                        <p>To disable 2FA, please follow these steps:</p>
+                        <div>
+                            <p>{translation[props.language].TwoFactor.CurrentlyActive}</p>
+                            <p>{translation[props.language].TwoFactor.FollowSteps}</p>
                         <ol>
-                            <li>Open your Google Authenticator app.</li>
-                            <li>Enter the code generated by Google Authenticator below:</li>
+                                <li>{translation[props.language].TwoFactor.FollowStepsQR1}</li>
+                                <li>{translation[props.language].TwoFactor.FollowStepsQR2}</li>
                         </ol>
                     </div>
                 </div>
             )}
             <div className="row mt-4">
                 <div className="col h4">
-                    <input type="number" className="form-control" placeholder="enter the digit code" id="userAuthKey" maxLength="6"></input>
+                    <input type="number" className="form-control" placeholder={translation[props.language].TwoFactor.EnterDigit} id="userAuthKey" maxLength="6"></input>
                 </div>
                 <div className="col-8 status-info">
-                    <input className="btn btn-dark" type="button" value={!googleAuthenticationStatus ? ("Enable") : ("Disable")} onClick={!googleAuthenticationStatus ? (enableGoogleAuthentication) : (disableGoogleAuthentication)}></input>
+                    <input className="btn btn-dark" type="button" value={!googleAuthenticationStatus ? (translation[props.language].TwoFactor.Enable) : (translation[props.language].TwoFactor.Disable)} onClick={!googleAuthenticationStatus ? (enableGoogleAuthentication) : (disableGoogleAuthentication)}></input>
                 </div>
             </div>
             <div className="row mt-4" id="activation-alert">
@@ -531,7 +535,7 @@ const TwoFactorAuthentication = () => {
                 </div>
                 <div className="col-8 email-authentication-status-info">
                     <div className="spinner-border" role="status">
-                        <span className="visually-hidden">Loading...</span>
+                        <span className="visually-hidden">{translation[props.language].TwoFactor.Loading}</span>
                     </div>
                 </div>
             </div> <hr style={{ border: "1px dashed black" }}></hr>
@@ -541,11 +545,11 @@ const TwoFactorAuthentication = () => {
             ) : (
                 <div className="row mb-2">
                     <div>
-                        <p>Your Two-Factor Authentication is currently active.</p>
-                        <p>To disable, please follow these steps:</p>
+                            <p>{translation[props.language].TwoFactor.CurrentlyActive}</p>
+                            <p>{translation[props.language].TwoFactor.FollowSteps}</p>
                         <ol>
-                            <li>Send email with code</li>
-                            <li>Enter this code on the website to confirm</li>
+                                <li>{translation[props.language].TwoFactor.FollowStepsEmail1}</li>
+                                <li>{translation[props.language].TwoFactor.FollowStepsEmail2}</li>
                         </ol>
                     </div>
                 </div>
@@ -554,14 +558,14 @@ const TwoFactorAuthentication = () => {
             <div className="row mt-4">
                 {emailAuthenticationStatus ? (
                     <div className="col h4">
-                        <input type="text" className="form-control" placeholder="enter code" id="emailAuthCode"></input>
+                        <input type="text" className="form-control" placeholder={translation[props.language].TwoFactor.EnterCode} id="emailAuthCode"></input>
                     </div>
                 ) :
                     ("")
                 }
                 <div className="col-8 status-info">
-                    <input className="btn btn-dark" type="button" value={!emailAuthenticationStatus ? ("Enable") : ("Disable")} onClick={!emailAuthenticationStatus ? (enableEmailAuthentication) : (disableEmailAuthentication)}></input>
-                    <input className="btn btn-dark m-2" type="button" value="Send code" onClick={(sendEmailAuthenticationCode)}></input>
+                    <input className="btn btn-dark" type="button" value={!emailAuthenticationStatus ? (translation[props.language].TwoFactor.Enable) : (translation[props.language].TwoFactor.Disable)} onClick={!emailAuthenticationStatus ? (enableEmailAuthentication) : (disableEmailAuthentication)}></input>
+                    <input className="btn btn-dark m-2" type="button" value={translation[props.language].TwoFactor.SendCode} onClick={(sendEmailAuthenticationCode)}></input>
                 </div>
             </div>
             <div className="row mt-4" id="activation-alert">
@@ -574,7 +578,7 @@ const TwoFactorAuthentication = () => {
             {/* Security Question Authentication */}
             
             <div className="row">
-                <h2>Security Question</h2>
+                <h2>{translation[props.language].TwoFactor.SecurityQ}</h2>
             </div> <hr style={{ border: "1px dashed black" }}></hr>
             <div className="row mb-2">
                 <div className="col h4">
@@ -582,14 +586,14 @@ const TwoFactorAuthentication = () => {
                 </div>
                 <div className="col-8 question-authentication-status-info">
                     <div className="spinner-border" role="status">
-                        <span className="visually-hidden">Loading...</span>
+                        <span className="visually-hidden">{translation[props.language].TwoFactor.Loading}</span>
                     </div>
                 </div>
             </div> <hr style={{ border: "1px dashed black" }}></hr>
 
             {!questionAuthenticationStatus && (
             <select className="form-select" value={selectedQuestion} onChange={handleSelectChange}>
-                <option value="">Select Question</option>
+                    <option value="">{translation[props.language].TwoFactor.SelectQ}</option>
                 {securityQuestions.map((item) => (
                     <option key={item.id} value={item.question}>{item.question}</option>
                 ))}
@@ -605,7 +609,7 @@ const TwoFactorAuthentication = () => {
 
 
             <div className="col-8 mt-3 mb-2 status-info">
-                <input className="btn btn-dark" type="button" value={!questionAuthenticationStatus ? ("Enable") : ("Disable")} onClick={!questionAuthenticationStatus ? (enableQuestionAuthentication) : (disableQuestionAuthentication)}></input>
+                <input className="btn btn-dark" type="button" value={!questionAuthenticationStatus ? (translation[props.language].TwoFactor.Enable) : (translation[props.language].TwoFactor.Disable)} onClick={!questionAuthenticationStatus ? (enableQuestionAuthentication) : (disableQuestionAuthentication)}></input>
             </div>
 
             {questionAuthenticationAlertMessage !== "" && (

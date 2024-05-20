@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import translation from "../assets/translation.json";
 
-const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList }) => {
+const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList, props }) => {
     const [obligationRequest, setObligationRequest] = useState({
         obligation: {
             name: "",
@@ -94,7 +95,7 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList }) =
             {showForm && (
                 <div className="card w-50 h-auto m-auto mb-5 p-3 pt-3" >
                     <form onSubmit={handleSubmit} className="row w-100 g-3">
-                        <h5>Add New Obligation</h5>
+                        <h5>{translation[props.language].Obligations.AddNew}</h5>
                         <select
                             className="form-control"
                             value={obligationRequest.obligation.categoryId}
@@ -108,7 +109,7 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList }) =
                                 })
                             }
                         >
-                            <option value="">Select a category</option>
+                            <option value="">{translation[props.language].Obligations.SelectCategory}</option>
                             {categories
                                 .filter(category => category.type === "Obligation") 
                                 .map((category) => (
@@ -123,7 +124,7 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList }) =
                             className="form-control"
                             name="name"
                             value={obligationRequest.obligation.name}
-                            placeholder="Enter Title"
+                            placeholder={translation[props.language].Obligations.EnTitle}
                             onChange={(e) =>
                                 setObligationRequest({
                                     ...obligationRequest,
@@ -140,7 +141,7 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList }) =
                             className="form-control"
                             name="description"
                             value={obligationRequest.obligation.description}
-                            placeholder="Enter description"
+                            placeholder={translation[props.language].Obligations.EnDesc}
                             onChange={(e) =>
                                 setObligationRequest({
                                     ...obligationRequest,
@@ -214,7 +215,7 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList }) =
                                 })
                             }
                         >
-                            <option value="">Select a repayment category</option>
+                            <option value="">{translation[props.language].Obligations.SelectRepay}</option>
                             {categories
                                 .filter(category => category.type === "Repayment") 
                                 .map((category) => (
@@ -227,14 +228,14 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList }) =
                         {information && <div className="error">{information}</div>}
                         {formError && <div className="col-md-12 error">{formError}</div>}
                         <button type="submit" className="btn btn-primary col-12">
-                            Add
+                            {translation[props.language].TransactionsPage.Add}
                         </button>
                     </form>
                 </div>
             )}
            {confirmationVisible && (
               <div className="alert alert-success" role="alert">
-                  Obligation added successfully!
+                    {translation[props.language].Obligations.AddedAlert}
                </div>
             )}
       </div>

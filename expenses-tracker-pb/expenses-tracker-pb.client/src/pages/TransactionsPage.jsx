@@ -8,10 +8,11 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import TransactionsChart from "../components/TransactionsChart";
 import ExpensesChart from "../components/ExpensesChart";
+import translation from "../assets/translation.json";
 
 
 
-const TransactionList = () => {
+const TransactionList = (props) => {
     const [transactions, setTransactions] = useState([]);
     const [transactionType, setTransactionType] = useState("all");
     const [categories, setCategories] = useState([]);
@@ -361,17 +362,18 @@ const TransactionList = () => {
 
     return (
         <div className="container">
-            <h2>Transaction list for {walletName}</h2>
+            <h2>{translation[props.language].TransactionsPage.List} {walletName}</h2>
             <div className="row my-3">
                 <button
                     className="btn btn-primary h-25 w-25 mx-1 col my-1"
                     onClick={() => setShowForm(!showForm)}
                 >
-                    {showForm ? "Cancel" : "Add Transaction"}
+                    {showForm ? translation[props.language].TransactionsPage.Cancel : translation[props.language].TransactionsPage.AddTrans}
                 </button>
             </div>
             {showForm && (
                 <TransactionForm
+                    props={props}
                     categories={categories}
                     walletId={walletId}
                     onSubmit={(newTransactionData) => {
@@ -386,20 +388,20 @@ const TransactionList = () => {
                     className="btn btn-secondary h-25 w-25 mx-1 col my-1"
                     onClick={() => handleTransactionTypeChange("all")}
                 >
-                    All Transactions
+                    {translation[props.language].TransactionsPage.All}
                 </button>
                 <button
                     className="btn btn-secondary h-25 w-25 mx-1 col my-1"
                     onClick={() => handleTransactionTypeChange("income")}
                 >
-                    Incomes
+                    {translation[props.language].TransactionsPage.Incomes}
                 </button>
                 <button
                     className="btn btn-secondary h-25 w-25 mx-1 col my-1"
                     onClick={() => handleTransactionTypeChange("expenditure")}
 
                 >
-                    Expenditures
+                    {translation[props.language].TransactionsPage.Expenditures}
                 </button>
             </div>
 
@@ -408,7 +410,7 @@ const TransactionList = () => {
                     className="btn btn-dark h-25 w-25 mx-1 col-3 my-1"
                     onClick={handleToggleFilters}
                 >
-                    {showFilters ? "Cancel" : "Add Filters"}
+                    {showFilters ? translation[props.language].TransactionsPage.Cancel : translation[props.language].TransactionsPage.AddFilters}
                 </button>
                 <div className="col-3"></div>
                 <button
@@ -420,11 +422,11 @@ const TransactionList = () => {
             </div>
             {showFilters && (
                 <div>
-                    <h3>Filter results:</h3>
+                    <h3>{translation[props.language].TransactionsPage.Filter}</h3>
                     <div className="row my-3">
                         <div className="col my-2">
                             <div className="d-flex flex-column mx-2 align-items-start">
-                                <label className="mb-1">Starting date:</label>
+                                <label className="mb-1">{translation[props.language].TransactionsPage.StDate}</label>
                                 <input
                                     type="date"
                                     name="startingDatePicker"
@@ -434,7 +436,7 @@ const TransactionList = () => {
                                 />
                             </div>
                             <div className="d-flex flex-column mx-2 align-items-start">
-                                <label className="mb-1">Ending date:</label>
+                                <label className="mb-1">{translation[props.language].TransactionsPage.EnDate}</label>
                                 <input
                                     type="date"
                                     name="endingDatePicker"
@@ -444,13 +446,13 @@ const TransactionList = () => {
                                 />
                             </div>
                             <div className="d-flex flex-column mx-2 align-items-start">
-                                <label className="mb-1">Category:</label>
+                                <label className="mb-1">{translation[props.language].TransactionsPage.Category}</label>
                                 <select
                                     id="categorySelect"
                                     onChange={handleCategoryChange}
                                     className="form-control"
                                 >
-                                    <option value="">No category</option>
+                                    <option value="">{translation[props.language].TransactionsPage.NoCategory}</option>
                                     {categories.map((category) => (
                                         <option key={category.Id} value={category.Id}>
                                             {category.Name}
@@ -459,7 +461,7 @@ const TransactionList = () => {
                                 </select>
                             </div>
                             <div className="d-flex flex-column mx-2 align-items-start">
-                                <label className="mb-1">Min value:</label>
+                                <label className="mb-1">{translation[props.language].TransactionsPage.MinVal}</label>
                                 <input
                                     type="number"
                                     name="minValuePicker"
@@ -469,7 +471,7 @@ const TransactionList = () => {
                                 />
                             </div>
                             <div className="d-flex flex-column mx-2 align-items-start">
-                                <label className="mb-1">Max value:</label>
+                                <label className="mb-1">{translation[props.language].TransactionsPage.MaxVal}</label>
                                 <input
                                     type="number"
                                     name="maxValuePicker"
@@ -479,7 +481,7 @@ const TransactionList = () => {
                                 />
                             </div>
                             <div className="d-flex flex-column mx-2 align-items-start">
-                                <label className="mb-1">Contains in title:</label>
+                                <label className="mb-1">{translation[props.language].TransactionsPage.Contains}</label>
                                 <input
                                     type="text"
                                     name="containsString"
@@ -488,15 +490,15 @@ const TransactionList = () => {
                                 />
                             </div>
                             <div className="d-flex flex-column mx-2 align-items-start">
-                                <label className="mb-1">Case sensitive search?:</label>
+                                <label className="mb-1">{translation[props.language].TransactionsPage.CaseSensitive}</label>
                                 <select
                                     name="caseSensitive"
                                     onChange={handleCaseSensitiveChange}
                                     className="form-control"
                                 >
                                     <option value={null}>-</option>
-                                    <option value={false}>No</option>
-                                    <option value={true}>Yes</option>
+                                    <option value={false}>{translation[props.language].TransactionsPage.No}</option>
+                                    <option value={true}>{translation[props.language].TransactionsPage.Yes}</option>
                                 </select>
                             </div>
                             <button
@@ -507,7 +509,7 @@ const TransactionList = () => {
                                 }}
                                 id="FilterButton"
                             >
-                                Filter
+                                {translation[props.language].TransactionsPage.Filter}
                             </button>
                             <button
                                 className="btn btn-secondary mx-2 my-2 align-self-end"
@@ -517,7 +519,7 @@ const TransactionList = () => {
                                 }}
                                 id="ClearFiltersButton"
                             >
-                                Clear Filters
+                                {translation[props.language].TransactionsPage.Clear}
                             </button>
                         </div>
                     </div>
@@ -526,16 +528,23 @@ const TransactionList = () => {
             <div className="row my-3">
                 <div className="col-md-6">
                 {transactions.length > 0 && showChart && (transactionType === "expenditure" || transactionType === "all") && (
-                    <>
-                            <ExpensesChart transactions={transactions} categories={categories} findCategoryName={findCategoryName} />
+                        <>
+                            <div className="card mx-auto my-5 h-auto background-chart w-75" style={{ border: 'none' }}>
+                                <p style={{ fontWeight: 'bold', fontSize: '22px', marginBottom: '0px' }}>{translation[props.language].TransactionsPage.ExpByCategory}</p>
+                            
+                                <ExpensesChart transactions={transactions} categories={categories} findCategoryName={findCategoryName} />
+                            </div>
                     </>
                     )}
                 </div>
                 <div className="col-md-6">
                 {transactions.length > 0 && showChart && transactionType === "all" && (
-                    <>
+                        <>
+                            <div className="card mx-auto my-5 h-auto background-chart w-75" style={{ border: 'none' }}>
+                                <p style={{ fontWeight: 'bold', fontSize: '22px' }}>{translation[props.language].TransactionsPage.Report}</p> </div>
                         <TransactionsChart transactions={transactions} totalIncomes={totalIncomes} totalExpenditures={totalExpenditures} />
-                        <h3 style={{ fontSize: '26px', textAlign: 'center', marginBottom: '20px', marginTop: '-35px' }}> Remaining Amount: <span style={{ color: 'lightgreen', fontSize: '26px' }}>{remainingAmount}</span></h3>
+                                <h3 style={{ fontSize: '26px', textAlign: 'center', marginBottom: '20px', marginTop: '10px' }}> {translation[props.language].TransactionsPage.Remaining} <span style={{ color: 'lightgreen', fontSize: '26px' }}>{remainingAmount}</span></h3>
+                           
                     </>
                     )}
                 </div>
@@ -575,7 +584,7 @@ const TransactionList = () => {
                     <div className="modal-content">
                         <div className="modal-header">
                             <h5 className="modal-title" id="modalTitleId">
-                                Transaction
+                                {translation[props.language].TransactionsPage.Transaction}
                             </h5>
                             <button
                                 type="button"
@@ -589,7 +598,7 @@ const TransactionList = () => {
                                 <div>
                                     <div className="mb-3">
                                         <label htmlFor="modal-tname" className="form-label">
-                                            Title
+                                            {translation[props.language].TransactionsPage.Title}
                                         </label>
                                         <input
                                             id="modal-tname"
@@ -603,7 +612,7 @@ const TransactionList = () => {
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="modal-tamount" className="form-label">
-                                            Amount
+                                            {translation[props.language].TransactionsPage.Amount}
                                         </label>
                                         <input
                                             id="modal-tamount"
@@ -617,7 +626,7 @@ const TransactionList = () => {
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="modal-tdesc" className="form-label">
-                                            Description:
+                                            {translation[props.language].TransactionsPage.Desc}
                                         </label>
                                         <input
                                             id="modal-tdesc"
@@ -631,7 +640,7 @@ const TransactionList = () => {
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="modal-tdesc" className="form-label">
-                                            Date:
+                                            {translation[props.language].TransactionsPage.Date}
                                         </label>
                                         <br />
                                         <input
@@ -643,7 +652,7 @@ const TransactionList = () => {
                                     </div>
                                     <div className="mb-3">
                                         <label htmlFor="modal-tcategory" className="form-label">
-                                            Category:
+                                            {translation[props.language].TransactionsPage.Category}
                                         </label>
                                         <select
                                             value={transaction.CategoryId}
@@ -662,7 +671,7 @@ const TransactionList = () => {
                                         </select>
                                     </div>
                                     <h5>
-                                        Type:
+                                        {translation[props.language].TransactionsPage.Type}
                                         <br />
                                         {transaction.TransactionType}
                                     </h5>
@@ -678,21 +687,21 @@ const TransactionList = () => {
                                 className="btn btn-secondary"
                                 data-bs-dismiss="modal"
                             >
-                                Close
+                                {translation[props.language].TransactionsPage.Close}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => handleDelete()}
                                 className="btn btn-danger"
                             >
-                                Delete
+                                {translation[props.language].TransactionsPage.Delete}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => handleModalSubmit()}
                                 className="btn btn-primary"
                             >
-                                Save
+                                {translation[props.language].TransactionsPage.Save}
                             </button>
                         </div>
                     </div>

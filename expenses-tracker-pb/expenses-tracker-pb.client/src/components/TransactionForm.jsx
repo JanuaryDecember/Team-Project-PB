@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showSuccessAlert, showFailedAlert, showWarningAlert } from './ToastifyAlert';
 import ProgressBar from 'react-bootstrap/ProgressBar';
+import translation from "../assets/translation.json";
 
-const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
+const TransactionForm = ({ onSubmit, onCancel, walletId, props }) => {
     const navigate = useNavigate();
 
     const [newTransaction, setNewTransaction] = useState({
@@ -174,10 +175,10 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                 console.log("Budgets with negative balance:");
                 console.log(data);
                 data.forEach(budget => {
-                    showWarningAlert(`Exceeded Budget!
-                    Budget: ${budget.name}
-                    Total Expenditure: ${budget.remainingBalance}
-                    Category: ${budget.budgetCategoryName}`);
+                    showWarningAlert(translation[props.language].Budget.Exceeded +
+                        translation[props.language].Budget.Budget +':'+ budget.name +
+                        translation[props.language].Budget.TotalExp +':'+ budget.remainingBalance +
+                        translation[props.language].Budget.Category +':'+ budget.budgetCategoryName);
                 });
             } else {
                 console.log("No budgets have a negative total expenditure.");
@@ -222,18 +223,18 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                     });
 
                     if (!response.ok) {
-                        setInformation('Error during adding category.');
+                        setInformation(translation[props.language].TransactionsPage.Error);
                         throw new Error('Failed to add category');
                     }
 
-                    setInformation('Category added successfully.');
+                    setInformation(translation[props.language].TransactionsPage.Success);
                 } catch (error) {
                     console.error('Error during adding category:', error);
-                    setInformation('Error during adding category.');
+                    setInformation(translation[props.language].TransactionsPage.Error);
                 }
             }
             else {
-                setInformation('Category with that name already exists!');
+                setInformation(translation[props.language].TransactionsPage.CategoryExists);
             }
             fetchCategories();
 
@@ -265,17 +266,17 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                 setTimeout(() => {
                     setConfirmationVisible(false);
                 }, 1500);
-                showSuccessAlert('Transaction added successfully!');
+                showSuccessAlert(translation[props.language].TransactionsPage.Success);
                 checkBudget();
                 document.getElementById('helper').click();
             } else {
                 console.error(response);
-                showFailedAlert('Invalid form data');
+                showFailedAlert(translation[props.language].TransactionsPage.Error);
                 setFormError('Invalid form data');
             }
         } catch (error) {
             console.error('Error adding transaction:', error);
-            showFailedAlert('Error adding transaction');
+            showFailedAlert(translation[props.language].TransactionsPage.Error);
             setFormError('Error adding transaction');
         }
     };
@@ -288,13 +289,13 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                     className={`btn ${transactionType === 'income' ? 'btn-grey' : 'btn-secondary'} mx-1`}
                     onClick={() => handleTypeSelection('income')}
                 >
-                    Income
+                    {translation[props.language].TransactionsPage.Income}
                 </button>
                 <button
                     className={`btn ${transactionType === 'expenditure' ? 'btn-grey' : 'btn-secondary'} mx-1`}
                     onClick={() => handleTypeSelection('expenditure')}
                 >
-                    Expenditure
+                    {translation[props.language].TransactionsPage.Expenditure}
                 </button>
             </div>
             {loading && (
@@ -306,17 +307,17 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                         aria-valuemin="0"
                         aria-valuemax="100"
                         style={{ width: '100%' }}
-                    >Decoding data...</div>
+                    >{translation[props.language].TransactionsPage.Decoding}</div>
                 </div>
             )}
             {formVisible && (
                 <div className="card w-50 h-auto m-auto mb-5 p-3 pt-3" >
                     <form onSubmit={handleSubmit} className="row w-100 g-3">
-                        <h5>Add New Transaction</h5>
+                        <h5>{translation[props.language].TransactionsPage.AddNew}</h5>
                         {transactionType === 'expenditure' ?
                             <div className="d-flex flex-column w-50 ">
                                 <button id="fill-button" className="btn btn-primary" onClick={handleButtonClick}>
-                                    <p>Fill amount with receipt photo</p>
+                                    <p>{translation[props.language].TransactionsPage.FillPhoto}</p>
                                 </button>
                                 <input className="mt-2" type="file" accept="image/*" onChange={handleFileChange} />
                             </div>
@@ -327,7 +328,7 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                             name="title"
                             value={newTransaction.title}
                             onChange={handleInputChange}
-                            placeholder="Enter title"
+                            placeholder={translation[props.language].TransactionsPage.EntTitle}
                             required
                         />
                         <input
@@ -336,7 +337,7 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                             name="description"
                             value={newTransaction.description}
                             onChange={handleInputChange}
-                            placeholder="Enter description"
+                            placeholder={translation[props.language].TransactionsPage.EntDesc}
                         />
                         <input
                             type="number"
@@ -344,7 +345,7 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                             name="amount"
                             value={newTransaction.amount}
                             onChange={handleInputChange}
-                            placeholder="Enter amount"
+                            placeholder={translation[props.language].TransactionsPage.EntAmount}
                             required
                         />
                         <input
@@ -364,7 +365,7 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                                 onChange={() => setUseCategoryInput(!useCategoryInput)}
                             />
                             <label htmlFor="useCategoryInput" style={{ marginLeft: '8px' }}>
-                                Create new category
+                                {translation[props.language].TransactionsPage.CreateCategory}
                             </label>
                         </div>
                         {useCategoryInput ? (
@@ -374,7 +375,7 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                                 name="name"
                                 value={customCategory}
                                 onChange={handleCustomCategoryChange}
-                                placeholder="Enter new category name"
+                                placeholder={translation[props.language].TransactionsPage.NewCategoryName}
                                 required={useCategoryInput}
                             />
                         ) : (
@@ -385,7 +386,7 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                                 onChange={handleCategoryChange}
                                 required={!useCategoryInput}
                             >
-                            <option value="">Select category</option>
+                                    <option value="">{translation[props.language].TransactionsPage.SelectCategory}</option>
                             {categories.map((category) => (
                                 (transactionType === 'income' && category.Type === 'Income') ||
                                     (transactionType === 'expenditure' && category.Type === 'Expenditure')
@@ -401,7 +402,7 @@ const TransactionForm = ({ onSubmit, onCancel, walletId }) => {
                         {information && <div className="error">{information}</div>}
                         {formError && <div className="col-md-12 error">{formError}</div>}
                         <button type="submit" className="btn btn-primary col-12">
-                            Add
+                            {translation[props.language].TransactionsPage.Add}
                         </button>
                     </form>
                 </div>
