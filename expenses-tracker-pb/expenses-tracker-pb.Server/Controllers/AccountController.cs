@@ -20,14 +20,15 @@ public class AccountController : ControllerBase
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly EmailSender _emailSender;
+    private readonly AuthenticationService _authenticationService;
 
-    public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ETDbContext dbContext, EmailSender emailSender)
-
+    public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, ETDbContext dbContext, EmailSender emailSender, AuthenticationService authenticationService)
     {
         _dbContext = dbContext;
         _userManager = userManager;
         _signInManager = signInManager;
         _emailSender = emailSender;
+        _authenticationService = authenticationService;
     }
 
     [Authorize]
@@ -121,12 +122,12 @@ public class AccountController : ControllerBase
         else if (user.EmailTwoFactorAuthenticationEnabled && cred.EmailAuthorizationCode != null)
         {
             bool isValid = false;
-            if (user.EmailTwoFactorAuthenticationCode == cred.EmailAuthorizationCode 
-                && user.EmailTwoFactorAuthenticationExpiryTime.GetValueOrDefault().CompareTo(DateTime.Now) >0)
+            if (user.EmailTwoFactorAuthenticationCode == cred.EmailAuthorizationCode
+                && user.EmailTwoFactorAuthenticationExpiryTime.GetValueOrDefault().CompareTo(DateTime.Now) > 0)
             {
-                isValid = true; 
+                isValid = true;
             }
- 
+
             if (!isValid)
             {
                 return Unauthorized("Invalid credentials");
@@ -196,34 +197,18 @@ public class AccountController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> AddUser([FromBody] UserModelForRegistration user)
     {
-        var existingUser = await _userManager.FindByNameAsync(user.Username);
-        if (existingUser != null)
+        try
         {
-            return Conflict("Username already taken");
+            bool result = await _authenticationService.register(user);
+            if (result)
+                return Ok("Registration succeded!");
+            else
+                return StatusCode(500, "Unable to register user!");
         }
-        existingUser = await _userManager.FindByEmailAsync(user.Email);
-        if (existingUser != null)
+        catch (Exception e)
         {
-            return Conflict("Email already in use");
+            return StatusCode(500, e.Message);
         }
-        var newUser = new User
-        {
-            UserName = user.Username,
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Wallets = new List<Wallet>(),
-            EmailTwoFactorAuthenticationEnabled = false
-        };
-
-        var result = await _userManager.CreateAsync(newUser, user.Password);
-
-        if (!result.Succeeded)
-        {
-            return BadRequest("Registration failed. " + result.ToString());
-        }
-
-        return Ok("Registartion succeded");
     }
 
     [HttpPost("changePassword")]
@@ -413,9 +398,9 @@ public class AccountController : ControllerBase
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var user = await _dbContext.Users.Include(x => x.SecurityQuestion).FirstOrDefaultAsync(u => u.Id == userId);
 
-            if (user == null) 
+            if (user == null)
             {
-                return NotFound("User not found"); 
+                return NotFound("User not found");
             }
 
             if (user.SecurityQuestion == null)
@@ -448,7 +433,7 @@ public class AccountController : ControllerBase
                 return Ok(new { message = "Verification is already enabled" });
             }
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             return StatusCode(500, "Error:" + e.Message);
         }
@@ -598,7 +583,7 @@ public class AccountController : ControllerBase
                     dynamic data = JObject.Parse(requestBody);
                     string emailAuthenticationCode = data.emailAuthenticationCode;
 
-                    
+
                     if (user.EmailTwoFactorAuthenticationCode != emailAuthenticationCode ||
                         user.EmailTwoFactorAuthenticationExpiryTime < DateTime.Now)
                     {
@@ -610,7 +595,7 @@ public class AccountController : ControllerBase
                     _dbContext.SaveChanges();
 
                     return Ok(new { message = "Verification disabled" });
-                    
+
                 }
                 else
                 {
@@ -641,10 +626,11 @@ public class AccountController : ControllerBase
             {
                 if (user.EmailTwoFactorAuthenticationEnabled == true)
                 {
-                    
-                    return Ok(new { message = "Verification is already active"});
+
+                    return Ok(new { message = "Verification is already active" });
                 }
-                else{
+                else
+                {
                     user.EmailTwoFactorAuthenticationEnabled = true;
                     _dbContext.Update(user);
                     _dbContext.SaveChanges();
@@ -704,7 +690,7 @@ public class AccountController : ControllerBase
                     TimeSpan roznica = DateTime.Now - user.LastEmailTwoFactorAuthenticationCodeSent.GetValueOrDefault();
                     if (roznica.TotalMinutes <= 1)
                     {
-                        
+
                         return Ok(new { message = "Too many request, try later" });
                     }
                     // Generate code
@@ -726,10 +712,10 @@ public class AccountController : ControllerBase
                     _dbContext.SaveChanges();
 
                     //Send email
-                    _emailSender.SendTwoFactorAuthenticationCode(user.Email,user.EmailTwoFactorAuthenticationCode);
+                    _emailSender.SendTwoFactorAuthenticationCode(user.Email, user.EmailTwoFactorAuthenticationCode);
                     return Ok(new { message = "Email with your code have been sent" });
                 }
-                
+
                 return Ok(new { message = "Verification is not enable" });
             }
             else
@@ -1005,24 +991,7 @@ public class AccountController : ControllerBase
         public string? EmailAuthorizationCode { get; set; }
         public string? SecurityQuestionAnswer { get; set; }
     }
-    public class UserModelForRegistration
-    {
-        public UserModelForRegistration(string firstName, string lastName, string username, string email, string password)
-        {
-            FirstName = firstName;
-            LastName = lastName;
-            Username = username;
-            Email = email;
-            Password = password;
-        }
 
-        public long Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Username { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
     [HttpPost("upload-photo")]
     public async Task<IActionResult> UploadPhoto(IFormFile file)
     {
