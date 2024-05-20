@@ -18,6 +18,7 @@ const ObligationsPage = () => {
     const [alertMessage, setAlertMessage] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const navigate = useNavigate();
+    const [information, setInformation] = useState("");
 
     useEffect(() => {
         checkUserLogin();
@@ -78,30 +79,50 @@ const ObligationsPage = () => {
     };
 
     const handleSave = async (obligationId, updatedObligation) => {
-        try {
-            const response = await fetch(`/api/obligation/updateObligation`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(updatedObligation),
-            });
-            if (!response.ok) {
-                throw new Error("Failed to save obligation");
-            }
-            const updatedObligations = obligations.map(obligation => {
-                if (obligation.id === obligationId) {
-                    return { ...obligation, editing: false };
-                } else {
-                    return obligation;
+
+        let valid = true;
+        const startDate = new Date(updatedObligation.startDate);
+        const dueDate = new Date(updatedObligation.dueDate);
+
+        if (updatedObligation.name.length < 3) {
+            setInformation("The title has to be at least 3 characters long.");
+            valid = false;
+        } else if (updatedObligation.amount <= 0) {
+            setInformation("Amount has to be greater than 0.");
+            valid = false;
+        } else if (startDate >= dueDate) {
+            setInformation("The Start Date has to be before Due Date.");
+            valid = false;
+        } else {
+            setInformation("");
+        }
+
+        if (valid) {
+            try {
+                const response = await fetch(`/api/obligation/updateObligation`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(updatedObligation),
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to save obligation");
                 }
-            });
-            showSuccessAlert('Obligation added successfully!')
-            setObligations(updatedObligations);
-            setSelectedObligationId(null);
-        } catch (error) {
-            showFailedAlert('Error saving obligation!')
-            console.error("Error saving obligation:", error);
+                const updatedObligations = obligations.map(obligation => {
+                    if (obligation.id === obligationId) {
+                        return { ...obligation, editing: false };
+                    } else {
+                        return obligation;
+                    }
+                });
+                showSuccessAlert('Obligation added successfully!')
+                setObligations(updatedObligations);
+                setSelectedObligationId(null);
+            } catch (error) {
+                showFailedAlert('Error saving obligation!')
+                console.error("Error saving obligation:", error);
+            }
         }
     };
 
@@ -212,7 +233,7 @@ const ObligationsPage = () => {
                                                 <input
                                                     type="date"
                                                     className="form-control"
-                                                    value={obligation.startDate}
+                                                    value={obligation.startDate.split('T')[0]}
                                                     onChange={(e) => {
                                                         const updatedObligations = [...obligations];
                                                         updatedObligations[index].startDate = e.target.value;
@@ -225,7 +246,7 @@ const ObligationsPage = () => {
                                                 <input
                                                     type="date"
                                                     className="form-control"
-                                                    value={obligation.dueDate}
+                                                    value={obligation.dueDate.split('T')[0]}
                                                     onChange={(e) => {
                                                         const updatedObligations = [...obligations];
                                                         updatedObligations[index].dueDate = e.target.value;
@@ -234,6 +255,7 @@ const ObligationsPage = () => {
                                                 />
                                             </div>
                                         </div>
+                                        {information && <div className="error" style={{ marginBottom: "10px" }}>{information}</div>}
                                         <button className="btn btn-dark" onClick={() => handleSave(obligation.id, obligation)}>Save</button>
                                     </React.Fragment>
                                 ) : (
@@ -262,7 +284,7 @@ const ObligationsPage = () => {
                                             </div>
                                         )}
                                         <button className="btn btn-dark" style={{ marginTop: "5px" }} onClick={() => handleEdit(obligation.id)}>Edit</button>
-                                        <button className="btn btn-danger" style={{ marginTop: "5px" }} onClick={() => handleDelete(obligation.id)}>Delete</button>
+                                        <button className="btn btn-danger" style={{ marginTop: "5px", marginBottom: "10px"}} onClick={() => handleDelete(obligation.id)}>Delete</button>
                                     </React.Fragment>
                                 )}
                             </div>
