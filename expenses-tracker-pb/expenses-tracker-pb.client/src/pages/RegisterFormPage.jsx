@@ -5,8 +5,9 @@ import { showSuccessAlert, showFailedAlert, showWarningAlert } from "../componen
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ReCAPTCHA from "react-google-recaptcha";
+import translation from "../assets/translation.json";
 
-const RegisterForm = () => {
+const RegisterForm = (props) => {
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [userName, setUserName] = useState("");
@@ -35,22 +36,22 @@ const RegisterForm = () => {
         let valid = true;
 
         if (!password) {
-            setPasswordError("Please enter your password.");
+            setPasswordError(translation[props.language].Profile.PassError);
             valid = false;
         } else if (password.length < 8) {
-            setPasswordError("Your password has to be at least 8 characters long.");
+            setPasswordError(translation[props.language].Profile.EightChar);
             valid = false;
         } else if (!/[A-Z]/.test(password)) {
-            setPasswordError("Your password has to contain at least one big letter.");
+            setPasswordError(translation[props.language].Profile.BigLetter);
             valid = false;
         } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-            setPasswordError("Your password has to contain at least one special sign.");
+            setPasswordError(translation[props.language].Profile.Special);
             valid = false;
         } else if (!/[0-9]/.test(password)) {
-            setPasswordError("Your password has to contain at least one number.");
+            setPasswordError(translation[props.language].Profile.Number);
             valid = false;
         } else if (password != confirmation) {
-            setConfirmationError("Both passwords have to be the same.");
+            setConfirmationError(translation[props.language].Profile.ValSamePass);
             valid = false;
         } else {
             setPasswordError("");
@@ -74,31 +75,31 @@ const RegisterForm = () => {
                 });
 
                 if (response.ok) {
-                    showSuccessAlert("Registration successful! ");
-                    showWarningAlert("You will be redirected to the login page in 2 seconds.");
+                    showSuccessAlert(translation[props.language].Profile.RegSuccess);
+                    showWarningAlert(translation[props.language].Profile.Redirect);
                     setTimeout(() => {
                         navigate("/");
                     }, 2000);
                 } else {
-                    setRegisterError("Registration failed");
-                    showFailedAlert("Registration failed");
+                    setRegisterError(translation[props.language].Profile.RegError);
+                    showFailedAlert(translation[props.language].Profile.RegError);
                 }
             } catch (error) {
                 console.error("Error during registration", error);
-                showFailedAlert("Registration failed");
+                showFailedAlert(translation[props.language].Profile.RegError);
             }
         } else {
             setRegisterError("Captcha is required");
-            showFailedAlert("Registration failed");
+            showFailedAlert(translation[props.language].Profile.RegError);
         }
     };
 
     const checkPasswordComplexity = () => {
         const complexityRules = [
-            { condition: password.length >= 8, message: "at least 8 characters long" },
-            { condition: /[A-Z]/.test(password), message: "contains a big letter" },
-            { condition: /[0-9]/.test(password), message: "contains a number" },
-            { condition: /[!@#$%^&*(),.?":{}|<>]/.test(password), message: "contains a special sign" },
+            { condition: password.length >= 8, message: translation[props.language].Profile.EightChar },
+            { condition: /[A-Z]/.test(password), message: translation[props.language].Profile.BigLetter },
+            { condition: /[0-9]/.test(password), message: translation[props.language].Profile.Number },
+            { condition: /[!@#$%^&*(),.?":{}|<>]/.test(password), message: translation[props.language].Profile.Special },
         ];
 
         return complexityRules.map((rule, index) => (
@@ -110,12 +111,12 @@ const RegisterForm = () => {
 
     return (
         <div className="container">
-            <h2 className="mt-4">Registration</h2>
+            <h2 className="mt-4">{translation[props.language].Profile.Reg}</h2>
             <form onSubmit={handleSubmit}>
                 <div className="row">
                     <div className="col-md-6 mb-3">
                         <label htmlFor="firstName" className="form-label">
-                            First Name:
+                            {translation[props.language].Profile.First}
                         </label>
                         <input
                             type="text"
@@ -129,7 +130,7 @@ const RegisterForm = () => {
 
                     <div className="col-md-6 mb-3">
                         <label htmlFor="lastName" className="form-label">
-                            Last Name:
+                            {translation[props.language].Profile.Last}
                         </label>
                         <input
                             type="text"
@@ -143,7 +144,7 @@ const RegisterForm = () => {
 
                     <div className="col-md-6 mb-3">
                         <label htmlFor="userName" className="form-label">
-                            Username:
+                            {translation[props.language].Profile.Username}
                         </label>
                         <input
                             type="text"
@@ -171,7 +172,7 @@ const RegisterForm = () => {
 
                     <div className="col-md-6 mb-3">
                         <label htmlFor="password" className="form-label">
-                            Password:
+                            {translation[props.language].Profile.Password}
                         </label>
                         <input
                             type="password"
@@ -182,12 +183,12 @@ const RegisterForm = () => {
                             required
                         />
                         {passwordError && <p className="error">{passwordError}</p>}
-                        Password complexity:
+                        {translation[props.language].Profile.PassComplex}
                         <ul>{checkPasswordComplexity()}</ul>
                     </div>
                     <div className="col-md-6 mb-3">
                         <label htmlFor="password" className="form-label">
-                            Confirm password:
+                            {translation[props.language].Profile.ConfirmPass}
                         </label>
                         <input
                             type="password"
@@ -206,7 +207,7 @@ const RegisterForm = () => {
                     className="mb-2"
                 />
                 <button disabled={!recaptchaBool} type="submit" className="btn btn-primary">
-                    Sign Up
+                    {translation[props.language].Profile.SignUp}
                 </button>
                 <p>{registerError}</p>
             </form>

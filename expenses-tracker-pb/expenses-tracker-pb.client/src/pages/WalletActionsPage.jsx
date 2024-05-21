@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import translation from "../assets/translation.json";
 
-const ObligationsPage = () => {
+const ObligationsPage = (props) => {
   const navigate = useNavigate();
     const [walletName, setWalletName] = useState(null);
     const { walletId } = useParams();
@@ -39,20 +40,20 @@ const ObligationsPage = () => {
 
   return (
     <div className="container">
-      <h2 className="d-flex justify-content-center mt-5">Wallet {walletName}</h2>
+          <h2 className="d-flex justify-content-center mt-5">{translation[props.language].WalletActions.Wallet} {walletName}</h2>
 
       <div className="d-flex justify-content-center mt-5">
         <button
           className="btn btn-secondary mx-1 mh-50 w-25"
           onClick={() => OnClickTransactions(walletId)}
         >
-          Transactions
+                  {translation[props.language].WalletActions.Transactions}
         </button>
         <button
           className="btn btn-secondary mx-1 mh-50 w-25"
           onClick={() => OnClickObligations(walletId)}
         >
-          Obligations
+                  {translation[props.language].WalletActions.Obligations}
         </button>
       </div>
     </div>

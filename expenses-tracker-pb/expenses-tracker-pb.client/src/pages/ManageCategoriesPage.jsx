@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showSuccessAlert, showFailedAlert, showWarningAlert } from "../components/ToastifyAlert";
+import translation from "../assets/translation.json";
 
-const ManageCategories = () => {
+
+const ManageCategories = (props) => {
     const [categories, setCategories] = useState([]);
     const [information, setInformation] = useState('');
     const [newCategory, setNewCategory] = useState({
@@ -62,7 +64,7 @@ const ManageCategories = () => {
 
     const handleAddCategory = async () => {
         if (newCategory.name === '') {
-            showWarningAlert('You have to name your category!');
+            showWarningAlert(translation[props.language].TransactionsPage.NameError);
         }
         else {
             const foundCategory = categories.find(
@@ -80,18 +82,18 @@ const ManageCategories = () => {
                     });
 
                     if (!response.ok) {
-                        showFailedAlert('Error during adding category.');
+                        showFailedAlert(translation[props.language].TransactionsPage.Failed);
                         throw new Error('Failed to add category');
                     }
 
-                    showSuccessAlert('Category added successfully.');
+                    showSuccessAlert(translation[props.language].TransactionsPage.Success);
                 } catch (error) {
                     console.error('Error during adding category:', error);
-                    showFailedAlert('Error during adding category.');
+                    showFailedAlert(translation[props.language].TransactionsPage.Failed);
                 }
             }
             else {
-                showWarningAlert('Category with that name already exists!');
+                showWarningAlert(translation[props.language].TransactionsPage.CategoryExists);
             }
         }
         fetchCategories();
@@ -219,12 +221,12 @@ const ManageCategories = () => {
 
     return (
         <div className="container mt-4">
-            <h2 className="mb-4"> Categories</h2>
+            <h2 className="mb-4"> {translation[props.language].Categories.Categories}</h2>
             <div className="mb-4">
-                <h4>Add New Category:</h4>
+                <h4>{translation[props.language].TransactionsPage.CreateCategory}</h4>
                 <div className="mb-3">
                     <label className="form-label">
-                        Name:
+                        {translation[props.language].Categories.Name}
                         <input
                             type="text"
                             name="name"
@@ -236,29 +238,29 @@ const ManageCategories = () => {
                 </div>
                 <div className="mb-3">
                     <label className="form-label">
-                        Type:
+                        {translation[props.language].Categories.Type}
                         <select
                             name="type"
                             value={newCategory.type}
                             onChange={(e) => handleInputChange(e)}
                             className="form-select"
                         >
-                            <option value="Expenditure">Expenditure</option>
-                            <option value="Income">Income</option>
+                            <option value="Expenditure">{translation[props.language].TransactionsPage.Expenditure}</option>
+                            <option value="Income">{translation[props.language].TransactionsPage.Income}</option>
                         </select>
                     </label>
                 </div>
-                <button onClick={handleAddCategory} className="btn btn-primary">Add Category</button>
+                <button onClick={handleAddCategory} className="btn btn-primary">{translation[props.language].Categories.AddCat}</button>
                 {information && <div className="error">{information}</div>}
             </div>
 
             <div className="mb-4">
-                <h3>Existing Categories:</h3>
+                <h3>{translation[props.language].Categories.ExistCat}</h3>
             </div>
 
             <div className="row">
                 <div className="col-md-6">
-                    <h3>Expenditures</h3>
+                    <h3>{translation[props.language].TransactionsPage.Expenditures}</h3>
                     <ul className="list-group">
                         {categories
                             .filter((category) => category.Type === "Expenditure")
@@ -280,13 +282,13 @@ const ManageCategories = () => {
                                                     onChange={(e) => handleInputChange(e, true)}
                                                     className="form-select mb-2"
                                                 >
-                                                    <option value="Expenditure">Expenditure</option>
-                                                    <option value="Income">Income</option>
+                                                    <option value="Expenditure">{translation[props.language].TransactionsPage.Expenditure}</option>
+                                                    <option value="Income">{translation[props.language].TransactionsPage.Income}</option>
                                                 </select>
                                             </div>
                                             <div className="d-flex">
-                                                <button onClick={handleEditCategory} className="btn btn-success me-2">Save</button>
-                                                <button onClick={handleCancelEditingCategory} className="btn btn-secondary">Cancel</button>
+                                                <button onClick={handleEditCategory} className="btn btn-success me-2">{translation[props.language].TransactionsPage.Save}</button>
+                                                <button onClick={handleCancelEditingCategory} className="btn btn-secondary">{translation[props.language].TransactionsPage.Cancel}</button>
                                             </div>
                                         </>
                                     ) : (
@@ -294,8 +296,8 @@ const ManageCategories = () => {
                                             <div className="flex-grow-1">{category.Name}</div>
                                             {!category.IsDefault && (
                                                 <div className="btn-group">
-                                                    <button onClick={() => handleStartEditingCategory(category)} className="btn btn-warning me-2">Edit</button>
-                                                    <button onClick={() => handleDeleteCategory(category.Id)} className="btn btn-danger">Delete</button>
+                                                        <button onClick={() => handleStartEditingCategory(category)} className="btn btn-warning me-2">{translation[props.language].Categories.Edit}</button>
+                                                        <button onClick={() => handleDeleteCategory(category.Id)} className="btn btn-danger">{translation[props.language].TransactionsPage.Delete}</button>
                                                 </div>
                                             )}
                                         </>
@@ -306,7 +308,7 @@ const ManageCategories = () => {
                 </div>
 
                 <div className="col-md-6">
-                    <h3>Incomes</h3>
+                    <h3>{translation[props.language].TransactionsPage.Incomes}</h3>
                     <ul className="list-group">
                         {categories
                             .filter((category) => category.Type === "Income")
@@ -328,13 +330,13 @@ const ManageCategories = () => {
                                                     onChange={(e) => handleInputChange(e, true)}
                                                     className="form-select mb-2"
                                                 >
-                                                    <option value="Expenditure">Expenditure</option>
-                                                    <option value="Income">Income</option>
+                                                    <option value="Expenditure">{translation[props.language].TransactionsPage.Expenditure}</option>
+                                                    <option value="Income">{translation[props.language].TransactionsPage.Income}</option>
                                                 </select>
                                             </div>
                                             <div className="d-flex">
-                                                <button onClick={handleEditCategory} className="btn btn-success me-2">Save</button>
-                                                <button onClick={handleCancelEditingCategory} className="btn btn-secondary">Cancel</button>
+                                                <button onClick={handleEditCategory} className="btn btn-success me-2">{translation[props.language].TransactionsPage.Save}</button>
+                                                <button onClick={handleCancelEditingCategory} className="btn btn-secondary">{translation[props.language].TransactionsPage.Cancel}l</button>
                                             </div>
                                         </>
                                     ) : (
@@ -342,8 +344,8 @@ const ManageCategories = () => {
                                             <div className="flex-grow-1">{category.Name}</div>
                                             {!category.IsDefault && (
                                                 <div className="btn-group">
-                                                    <button onClick={() => handleStartEditingCategory(category)} className="btn btn-warning me-2">Edit</button>
-                                                    <button onClick={() => handleDeleteCategory(category.Id)} className="btn btn-danger">Delete</button>
+                                                        <button onClick={() => handleStartEditingCategory(category)} className="btn btn-warning me-2">{translation[props.language].Categories.Edit}</button>
+                                                        <button onClick={() => handleDeleteCategory(category.Id)} className="btn btn-danger">{translation[props.language].TransactionsPage.Delete}</button>
                                                     </div>
                                                 )}
                                         </>
@@ -355,7 +357,7 @@ const ManageCategories = () => {
                 <div className="mb-4"></div>
                 {!isLoggedIn && (
                     <div className="alert alert-danger" role="alert" style={{ marginTop: '20px', textAlign: 'center' }}>
-                        You are not logged in. Redirecting to home page...
+                        {translation[props.language].Categories.NotLoggedIn}
                     </div>
                 )}
             </div>

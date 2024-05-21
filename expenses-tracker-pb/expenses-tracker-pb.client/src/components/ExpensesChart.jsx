@@ -83,7 +83,6 @@ const ExpensesChart = ({ transactions, categories, findCategoryName }) => {
 
     return (
         <div className="card mx-auto my-5 h-auto background-chart w-75" style={{ border: 'none' }}>
-            <p style={{ fontWeight: 'bold', fontSize: '22px' }}>Expenses by Category</p>
             <div style={{ height: '300px' }}>
                 <canvas ref={chartRef} width="400" height="400"></canvas>
             </div>

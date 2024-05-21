@@ -3,8 +3,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { showSuccessAlert, showWarningAlert } from "../components/ToastifyAlert";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import translation from "../assets/translation.json";
 
-const MyReceipt = () => {
+const MyReceipt = (props) => {
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewImage, setPreviewImage] = useState(null);
     const [fileName, setFileName] = useState("");
@@ -62,7 +63,7 @@ const MyReceipt = () => {
                 };
                 reader.readAsDataURL(file);
             } else {
-                alert('You have to choose an image.');
+                alert(translation[props.language].Receipt.ChooseAlert);
                 event.target.value = null;
                 setSelectedFile(null);
                 setPreviewImage(null);
@@ -73,7 +74,7 @@ const MyReceipt = () => {
 
     const handleUpload = async () => {
         if (!selectedFile || !fileName) {
-            showWarningAlert('You have to choose a file and provide a name.');
+            showWarningAlert(translation[props.language].Receipt.WarningAlert);
             return;
         }
 
@@ -98,11 +99,11 @@ const MyReceipt = () => {
                 setSelectedFile(null);
                 setPreviewImage(null);
                 setFileName("");
-                showSuccessAlert('File has been successfully uploaded.');
+                showSuccessAlert(translation[props.language].Receipt.Success);
                 fetchPhotos();
             } else {
                 console.error('An error occurred while uploading the file.');
-                alert('An error occurred while uploading the file.');
+                alert(translation[props.language].Receipt.Error);
             }
 
         } catch (error) {
@@ -116,17 +117,17 @@ const MyReceipt = () => {
 
     return (
         <div className='container'>
-            <h2 className="mt-4">Folder link</h2>
+            <h2 className="mt-4">{translation[props.language].Receipt.FolderLink}</h2>
             {folderLink ? (
                 <div>
-                    <a href={folderLink} target="_blank" rel="noopener noreferrer">Open My Folder</a>
+                    <a href={folderLink} target="_blank" rel="noopener noreferrer">{translation[props.language].Receipt.OpenFolder}</a>
                 </div>
             ) : (
                 <div>
-                    Link does not exist. You need to add some file!
+                        {translation[props.language].Receipt.LinkNotExists}
                 </div>
             )}
-            <h2 className="mt-4">Photos from Google Drive</h2>
+            <h2 className="mt-4">{translation[props.language].Receipt.PhotosGoogle}</h2>
             <div className="row">
                 {photoUrls.length > 0 ? (
                     photoUrls.map((url, index) => (
@@ -136,16 +137,16 @@ const MyReceipt = () => {
                     ))
                 ) : (
                     <div className="col-md-12">
-                        <p>No photos to display.</p>
+                            <p>{translation[props.language].Receipt.NoPhotos}</p>
                     </div>
                 )}
             </div>
-            <h2 className="mt-4">Add receipt</h2>
+            <h2 className="mt-4">{translation[props.language].Receipt.AddReceipt}</h2>
             <form onSubmit={handleSubmit}>
                 <div className="row">
                     <div className="col-md-6 mb-3">
                         <label htmlFor="firstName" className="form-label">
-                            File name:
+                            {translation[props.language].Receipt.FileName}
                         </label>
                         <input
                             type="text"
@@ -159,7 +160,7 @@ const MyReceipt = () => {
 
                     <div className="col-md-6 mb-3">
                         <label htmlFor="lastName" className="form-label">
-                            Choose an image:
+                            {translation[props.language].Receipt.ImageChoose}
                         </label>
                         <input
                             className="form-control"
@@ -171,11 +172,11 @@ const MyReceipt = () => {
                     </div>
                     <div style={{ textAlign: 'center' }}>
                         <label htmlFor="lastName" className="form-label">
-                            Image preview:
+                            {translation[props.language].Receipt.Preview}
                         </label> <br />
                         {previewImage && <img src={previewImage} alt="Preview" style={{ maxWidth: '300px', marginBottom: '20px', maxHeight: '500px' }} />}
                     </div>
-                    <button type="button" className="btn btn-primary" onClick={handleUpload}>Upload</button>
+                    <button type="button" className="btn btn-primary" onClick={handleUpload}>{translation[props.language].Receipt.Upload}</button>
                 </div>
             </form>
             <ToastContainer />

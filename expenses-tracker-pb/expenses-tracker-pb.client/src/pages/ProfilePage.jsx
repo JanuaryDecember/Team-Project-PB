@@ -1,7 +1,8 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import translation from "../assets/translation.json";
 
-const ProfilePage = () => {
+const ProfilePage = (props) => {
     const [userData, setUserData] = useState({
         user: {
             firstName: '',
@@ -149,31 +150,31 @@ const ProfilePage = () => {
         const errors = {};
 
         if (!userData.user.firstName.trim()) {
-            errors.firstName = 'First name is required';
+            errors.firstName = translation[props.language].Profile.ValFirst;
         }
 
         if (!userData.user.lastName.trim()) {
-            errors.lastName = 'Last name is required';
+            errors.lastName = translation[props.language].Profile.ValLast;
         }
 
         if (!userData.user.userName.trim()) {
-            errors.userName = 'Username is required';
+            errors.userName = translation[props.language].Profile.ValUsername;
         }
 
         if (!userData.user.email.trim()) {
-            errors.email = 'Email is required';
+            errors.email = translation[props.language].Profile.ValEmail;
         } else if (!isValidEmail(userData.user.email)) {
-            errors.email = 'Invalid email format';
+            errors.email = translation[props.language].Profile.InvalidEmail;
         }
 
         if (!userData.user.password.trim()) {
-            errors.password = 'Password is required';
+            errors.password = translation[props.language].Profile.ValPassword;
         } else if (!isValidPassword(userData.user.password)) {
-            errors.password = 'Invalid password format';
+            errors.password = translation[props.language].Profile.InvalidPassword;
         }
 
         if (userData.user.password != confirmation) {
-            errors.confirmation = 'Both passwords have to be the same';
+            errors.confirmation = translation[props.language].Profile.ValSamePass;
         }
 
         return errors;
@@ -201,10 +202,10 @@ const ProfilePage = () => {
 
     const checkPasswordComplexity = () => {
         const complexityRules = [
-            { condition: userData.user.password.length >= 8, message: "at least 8 characters long" },
-            { condition: /[A-Z]/.test(userData.user.password), message: "contains a big letter" },
-            { condition: /[0-9]/.test(userData.user.password), message: "contains a number" },
-            { condition: /[!@#$%^&*(),.?":{}|<>]/.test(userData.user.password), message: "contains a special sign" },
+            { condition: userData.user.password.length >= 8, message: translation[props.language].Profile.EightChar },
+            { condition: /[A-Z]/.test(userData.user.password), message: translation[props.language].Profile.BigLetter },
+            { condition: /[0-9]/.test(userData.user.password), message: translation[props.language].Profile.Number },
+            { condition: /[!@#$%^&*(),.?":{}|<>]/.test(userData.user.password), message: translation[props.language].Profile.Special },
         ];
 
         return complexityRules.map((rule, index) => (
@@ -220,7 +221,7 @@ const ProfilePage = () => {
 
     const handleAddPhotoClick = async () => {
         if(!photoFile) {
-            alert("Please select a file to upload.");
+            alert(translation[props.language].Profile.Warning);
             return;
         }
 
@@ -240,10 +241,10 @@ const ProfilePage = () => {
                 console.error('Response Error:', errorText);  
                 throw new Error('Failed to upload photo');
             }
-            alert("Photo uploaded successfully!");
+            alert(translation[props.language].Profile.SuccessPhoto);
         } catch (error) {
             console.error('Error during photo upload:', error);
-            alert("Error uploading photo");
+            alert(translation[props.language].Profile.Error);
         }
     };
 
@@ -251,17 +252,17 @@ const ProfilePage = () => {
         <div className="container">
             {isLoggedIn ? (
                 <>
-                    <h2 className="mt-4">Account details:</h2>
+                    <h2 className="mt-4">{translation[props.language].Profile.Account}</h2>
                     <div className="profile__component">
                         <div className="profile__component__grid">
                         <table>
                             <tbody>
                                 <tr>
                                     <td>
-                                        <label>First Name:</label>
+                                            <label>{translation[props.language].Profile.First}</label>
                                     </td>
                                     <td>
-                                        <label>Last Name:</label>
+                                            <label>{translation[props.language].Profile.Last}</label>
                                     </td>
                                 </tr>
                                 <tr>
@@ -300,7 +301,7 @@ const ProfilePage = () => {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <label>Username:</label>
+                                            <label>{translation[props.language].Profile.Username}</label>
                                     </td>
                                     <td>
                                         <label>Email:</label>
@@ -328,10 +329,10 @@ const ProfilePage = () => {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <label>Password:</label>
+                                            <label>{translation[props.language].Profile.Password}</label>
                                     </td>
                                     <td>
-                                        <label>TwoFactorEnabled:</label>
+                                            <label>{translation[props.language].Profile.TwoFactor}</label>
                                     </td>
                                 </tr>
                                 <tr>
@@ -353,7 +354,7 @@ const ProfilePage = () => {
                                         )}
                                     </td>
                                     <td>
-                                            {userData.user.emailTwoFactorAuthenticationEnabled === false && userData.user.googleAuthKey === null && userData.user.securityQuestionAnswer === null ? "No" : "Yes"}
+                                            {userData.user.emailTwoFactorAuthenticationEnabled === false && userData.user.googleAuthKey === null && userData.user.securityQuestionAnswer === null ? translation[props.language].Profile.No : translation[props.language].Profile.Yes}
 
                                      </td>
                                         
@@ -362,7 +363,7 @@ const ProfilePage = () => {
                                     <td>
                                         {isEditing ? (
                                             <>
-                                                <label>Confirm password:</label>
+                                                    <label>{translation[props.language].Profile.ConfirmPass}</label>
                                             </>
                                         ) : (
                                             <></>
@@ -393,7 +394,7 @@ const ProfilePage = () => {
                                         {isEditing ? (
                                             <div className="edit-button-container">
                                                 <input type="file" onChange={handleFileChange} />
-                                                <button className="btn btn-primary" onClick={handleAddPhotoClick}>Add photo</button>
+                                                    <button className="btn btn-primary" onClick={handleAddPhotoClick}>{translation[props.language].Profile.AddPhoto}</button>
                                             </div>
                                         ) : (
                                             <></>
@@ -404,12 +405,12 @@ const ProfilePage = () => {
                         </table>
                         {isEditing ? (
                             <div className="edit-button-container">
-                                <button className="btn btn-primary" onClick={handleSaveClick}>Save</button>
-                                <button id="cancelBtn" className="btn btn-primary" onClick={handleCancelClick}>Cancel</button>
+                                    <button className="btn btn-primary" onClick={handleSaveClick}>{translation[props.language].Profile.Save}</button>
+                                    <button id="cancelBtn" className="btn btn-primary" onClick={handleCancelClick}>{translation[props.language].Profile.Cancel}</button>
                             </div>
                         ) : (
                             <div className="edit-button-container">
-                                <button className="btn btn-primary" onClick={handleEditClick}>Edit</button>
+                                        <button className="btn btn-primary" onClick={handleEditClick}>{translation[props.language].Profile.Edit}</button>
                             </div>
                         )}
                         
