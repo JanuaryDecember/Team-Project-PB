@@ -6,10 +6,12 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList, pro
         obligation: {
             name: "",
             description: "",
-            amount: 0,
-            startDate: new Date().toISOString(),
+            amount: null,
+            startDate: new Date().toISOString().split('T')[0],
             dueDate: new Date().toISOString(),
             wallet: null,
+            categoryId: 0,
+            categoryRepaymentId: 0,
         },
         walletId: walletId,
     });
@@ -48,6 +50,8 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList, pro
                 startDate: new Date().toISOString(),
                 dueDate: new Date().toISOString(),
                 wallet: null,
+                categoryId: 0,
+                categoryRepaymentId: 0,
             },
             walletId: walletId,
         });
@@ -58,35 +62,61 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList, pro
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log(obligationRequest);
-        try {
-            let url = "/api/obligation/addObligation";
+        let valid = true;
+        const startDate = new Date(obligationRequest.obligation.startDate);
+        const dueDate = new Date(obligationRequest.obligation.dueDate);
 
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(obligationRequest),
-                credentials: "include",
-            });
-
-            if (response.ok) {
-                resetForm();
-                setConfirmationVisible(true);
-                setShowForm(false); 
-                setTimeout(() => {
-                    setConfirmationVisible(false);
-                }, 1500);
-                refreshObligationsList();
-            } else {
-                console.error(response);
-                setFormError("Invalid form data");
-            }
-        } catch (error) {
-            console.error("Error adding transaction:", error);
-            setFormError("Error adding transaction");
+        if (obligationRequest.obligation.categoryId == 0) {
+            setInformation("You have to choose the obligation category.");
+            valid = false;
+        } else if (obligationRequest.obligation.name.length < 3) {
+            setInformation("The title has to be at least 3 characters long.");
+            valid = false;
+        } else if (obligationRequest.obligation.amount <= 0) {
+            setInformation("Amount has to be greater than 0.");
+            valid = false;
+        } else if (startDate >= dueDate) {
+            setInformation("The Start Date has to be before Due Date.");
+            valid = false;
+        } else if (obligationRequest.obligation.categoryRepaymentId == 0) {
+            setInformation("You have to choose the type of repayment.");
+            valid = false;
+        } else {
+            setInformation("");
         }
+
+        if (valid) {
+            console.log(obligationRequest);
+            try {
+                let url = "/api/obligation/addObligation";
+
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(obligationRequest),
+                    credentials: "include",
+                });
+
+                if (response.ok) {
+                    resetForm();
+                    setConfirmationVisible(true);
+                    setShowForm(false);
+                    setTimeout(() => {
+                        setConfirmationVisible(false);
+                    }, 1500);
+                    refreshObligationsList();
+                } else {
+                    console.error(response);
+                    setFormError("Invalid form data");
+                }
+            } catch (error) {
+                console.error("Error adding obligation:", error);
+                setFormError("Error adding obligation");
+            }
+        }
+        
     };
 
 

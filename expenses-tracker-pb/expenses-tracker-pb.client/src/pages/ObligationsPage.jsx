@@ -22,6 +22,7 @@ const ObligationsPage = (props) => {
     const [selectedObligationRepayments, setSelectedObligationRepayments] = useState([]);
     const [selectedObligationDetails, setSelectedObligationDetails] = useState({});
     const navigate = useNavigate();
+    const [information, setInformation] = useState("");
 
     useEffect(() => {
         checkUserLogin();
@@ -82,30 +83,50 @@ const ObligationsPage = (props) => {
     };
 
     const handleSave = async (obligationId, updatedObligation) => {
-        try {
-            const response = await fetch(`/api/obligation/updateObligation`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(updatedObligation),
-            });
-            if (!response.ok) {
-                throw new Error("Failed to save obligation");
-            }
-            const updatedObligations = obligations.map(obligation => {
-                if (obligation.id === obligationId) {
-                    return { ...obligation, editing: false };
-                } else {
-                    return obligation;
+
+        let valid = true;
+        const startDate = new Date(updatedObligation.startDate);
+        const dueDate = new Date(updatedObligation.dueDate);
+
+        if (updatedObligation.name.length < 3) {
+            setInformation("The title has to be at least 3 characters long.");
+            valid = false;
+        } else if (updatedObligation.amount <= 0) {
+            setInformation("Amount has to be greater than 0.");
+            valid = false;
+        } else if (startDate >= dueDate) {
+            setInformation("The Start Date has to be before Due Date.");
+            valid = false;
+        } else {
+            setInformation("");
+        }
+
+        if (valid) {
+            try {
+                const response = await fetch(`/api/obligation/updateObligation`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(updatedObligation),
+                });
+                if (!response.ok) {
+                    throw new Error("Failed to save obligation");
                 }
-            });
-            showSuccessAlert(translation[props.language].Obligations.AddedAlert)
-            setObligations(updatedObligations);
-            setSelectedObligationId(null);
-        } catch (error) {
-            showFailedAlert(translation[props.language].Obligations.FailedSaving)
-            console.error("Error saving obligation:", error);
+                const updatedObligations = obligations.map(obligation => {
+                    if (obligation.id === obligationId) {
+                        return { ...obligation, editing: false };
+                    } else {
+                        return obligation;
+                    }
+                });
+                showSuccessAlert('Obligation added successfully!')
+                setObligations(updatedObligations);
+                setSelectedObligationId(null);
+            } catch (error) {
+                showFailedAlert('Error saving obligation!')
+                console.error("Error saving obligation:", error);
+            }
         }
     };
 
@@ -240,7 +261,7 @@ const ObligationsPage = (props) => {
                                                 <input
                                                     type="date"
                                                     className="form-control"
-                                                    value={obligation.startDate}
+                                                    value={obligation.startDate.split('T')[0]}
                                                     onChange={(e) => {
                                                         const updatedObligations = [...obligations];
                                                         updatedObligations[index].startDate = e.target.value;
@@ -253,7 +274,7 @@ const ObligationsPage = (props) => {
                                                 <input
                                                     type="date"
                                                     className="form-control"
-                                                    value={obligation.dueDate}
+                                                    value={obligation.dueDate.split('T')[0]}
                                                     onChange={(e) => {
                                                         const updatedObligations = [...obligations];
                                                         updatedObligations[index].dueDate = e.target.value;
@@ -262,6 +283,7 @@ const ObligationsPage = (props) => {
                                                 />
                                             </div>
                                         </div>
+                                        {information && <div className="error" style={{ marginBottom: "10px" }}>{information}</div>}
                                         <button className="btn btn-dark" onClick={() => handleSave(obligation.id, obligation)}>{translation[props.language].Obligations.Save}</button>
                                     </React.Fragment>
                                 ) : (
@@ -290,7 +312,7 @@ const ObligationsPage = (props) => {
                                             </div>
                                         )}
                                             <button className="btn btn-dark" style={{ marginTop: "5px" }} onClick={() => handleEdit(obligation.id)}>{translation[props.language].Obligations.Edit}</button>
-                                            <button className="btn btn-danger" style={{ marginTop: "5px" }} onClick={() => handleDelete(obligation.id)}>{translation[props.language].Obligations.Delete}</button>
+                                            <button className="btn btn-danger" style={{ marginTop: "5px", marginBottom: "10px" }} onClick={() => handleDelete(obligation.id)}>{translation[props.language].Obligations.Delete}</button>
                                     </React.Fragment>
                                 )}
                             </div>
