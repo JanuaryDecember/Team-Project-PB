@@ -1,17 +1,13 @@
-﻿using expenses_tracker_pb.Server.Services.UserService;
-using expenses_tracker_pb.Server.Services.WalletService;
+﻿using expenses_tracker_pb.Server.Services.WalletService;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Authentication;
-using System.Security.Claims;
 
 namespace expenses_tracker_pb.Server.Controllers
 {
     [ApiController]
     [Route("api/user/wallet")]
-    public class WalletController(UserManager<User> userManager, ETDbContext dbContext, EmailSender emailSender, IWalletService walletService) : ControllerBase
+    public class WalletController(IWalletService walletService) : ControllerBase
     {
         [Authorize]
         [HttpGet]
@@ -24,7 +20,7 @@ namespace expenses_tracker_pb.Server.Controllers
             }
             catch (Exception e)
             {
-                if(e is AuthenticationException || e is InvalidCredentialException)
+                if (e is AuthenticationException || e is InvalidCredentialException)
                 {
                     return BadRequest(e.Message);
                 }
@@ -33,20 +29,13 @@ namespace expenses_tracker_pb.Server.Controllers
         }
 
         [Authorize]
-        [HttpGet("/{walletId}")]
+        [HttpGet("{walletId}")]
         public async Task<IActionResult> GetWallet(string WalletId)
-        {
-           
-        }
-
-        [Authorize]
-        [HttpPost]
-        public async Task<IActionResult> AddWallet([FromBody] UpdateWalletRequest request)
         {
             try
             {
-                await walletService.AddWallet(request);
-                return Ok("Added wallet succesfully");
+                var wallets = await walletService.GetWallets();
+                return Ok(wallets);
             }
             catch (Exception e)
             {
@@ -59,71 +48,60 @@ namespace expenses_tracker_pb.Server.Controllers
         }
 
         [Authorize]
-        [HttpDelete("removeWallet/{walletId}")]
-        public async Task<IActionResult> DeleteWallet(string walletId)
+        [HttpPost]
+        public async Task<IActionResult> AddWallet([FromBody] WalletRequest request)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
+            try
             {
-                return Unauthorized("Session ended! Sign in again");
+                await walletService.AddWallet(request);
+                return Ok("Wallet added succesfully");
             }
-
-
-            var user = await dbContext.Users
-            .Include("Wallets")
-            .FirstOrDefaultAsync(u => u.Id == userId);
-
-            if (user == null)
+            catch (Exception e)
             {
-                return Unauthorized("Unable to find user with this id");
+                if (e is AuthenticationException || e is InvalidCredentialException)
+                {
+                    return BadRequest(e.Message);
+                }
+                return StatusCode(500, e.Message);
             }
-
-            var wallet = user.Wallets.FirstOrDefault(w => w.Id == long.Parse(walletId));
-
-            if (wallet == null)
-            {
-                return NotFound("Wallet not found");
-            }
-
-            user.Wallets.Remove(wallet);
-
-            await dbContext.SaveChangesAsync();
-
-            return Ok();
         }
 
         [Authorize]
-        [HttpPut("updateWallet/{walletId}")]
-        public async Task<IActionResult> UpdateWallet(string walletId, [FromBody] string name)
+        [HttpDelete("{WalletId}")]
+        public async Task<IActionResult> DeleteWallet(string WalletId)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
+            try
             {
-                return Unauthorized("Session ended! Sign in again");
+                await walletService.DeleteWallet(WalletId);
+                return Ok("Wallet removed successfully");
             }
-
-
-            var user = await dbContext.Users
-            .Include("Wallets")
-            .FirstOrDefaultAsync(u => u.Id == userId);
-
-            if (user == null)
+            catch (Exception e)
             {
-                return Unauthorized("Unable to find user with this id");
+                if (e is AuthenticationException || e is InvalidCredentialException)
+                {
+                    return BadRequest(e.Message);
+                }
+                return StatusCode(500, e.Message);
             }
+        }
 
-            var wallet = user.Wallets.FirstOrDefault(w => w.Id == long.Parse(walletId));
-
-            if (wallet == null)
+        [Authorize]
+        [HttpPut("{WalletId}")]
+        public async Task<IActionResult> UpdateWallet(string WalletId, [FromBody] string Name)
+        {
+            try
             {
-                return NotFound("Wallet not found");
+                await walletService.UpdateWallet(WalletId, Name);
+                return Ok("Wallet updated successfully");
             }
-
-            wallet.Name = name;
-
-            await dbContext.SaveChangesAsync();
-
-            return Ok();
+            catch (Exception e)
+            {
+                if (e is AuthenticationException || e is InvalidCredentialException)
+                {
+                    return BadRequest(e.Message);
+                }
+                return StatusCode(500, e.Message);
+            }
         }
     }
 }

@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-
-namespace expenses_tracker_pb.Server.Services.WalletService
+﻿namespace expenses_tracker_pb.Server.Services.WalletService
 {
     public interface IWalletService
     {
         Task<ICollection<Wallet>> GetWallets();
         Task DeleteWallet(string WalletId);
         Task UpdateWallet(string WalletId, string Name);
-        Task AddWallet(UpdateWalletRequest request);
+        Task AddWallet(WalletRequest request);
     }
 }
