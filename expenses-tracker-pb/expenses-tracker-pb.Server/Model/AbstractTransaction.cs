@@ -13,7 +13,7 @@ public abstract class AbstractTransaction
     public long WalletId { get; set; }
     public Wallet Wallet;
     [ForeignKey("CategoryId")]
-    public long CategoryId { get; set; }
+    public long? CategoryId { get; set; }
     public Category? Category { get; set; }
     public abstract string TransactionType { get; }
 
