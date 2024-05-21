@@ -189,15 +189,24 @@ function Budget() {
         body: JSON.stringify(budgetDetails),
       });
 
-      if(response.ok){
+      if (response.ok) {
         setAlertSuccess("Successfully created new budget!");
         setAlertDanger(null);
-      }
+        //location.reload();
+        fetchBudgets();
+      } else if (response.status === 409) {
+        const errorMessage = await response.text();
+        console.error(errorMessage);
+        setAlertDanger(errorMessage);
+        setAlertSuccess(null);
+    }
 
-    }catch(error){
+    } catch (error) {
+      const errorMessage = await response.text();
+      console.error(errorMessage);
       console.error("Adding new budget failed.", error);
       setAlertSuccess(null);
-      setAlertDanger("Failed to create new Budget!");
+      setAlertDanger(errorMessage);
     }
   }
 
@@ -336,7 +345,8 @@ function Budget() {
           </div>
 
           <div className="col-12 m-1">
-            <button type="submit" className="btn btn-primary" required>Add new budget</button>
+            <button type="button" onClick={submitNewBudget} className="btn btn-primary" required>Add new budget</button>
+            {/* <button type="submit" className="btn btn-primary" required>Add new budget</button> */}
           </div>
         </form>
     
