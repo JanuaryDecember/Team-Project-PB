@@ -138,8 +138,27 @@ const TransactionList = (props) => {
         }
     }
 
+    const validateTransactionData = (data) => {
+        if (!data.title || data.title.length < 3 || data.title.length > 20) {
+            return "Title must be at least 3 characters long and less than 20 characters long";
+        }
+        if (!data.description || data.description.length < 3 || data.description.length > 30) {
+            return "Description must be at least 3 characters long and less than 30 characters long";
+        }
+        if (!data.amount || data.amount <= 0) {
+            return "Amount must be greater than 0";
+        }
+        return null;
+    };
+
     const handleAddTransaction = async (newTransactionData) => {
         try {
+            const error = validateTransactionData(newTransactionData);
+            if (error) {
+                showFailedAlert(error);
+                return;
+            }
+
             let url = "";
             if (newTransactionData.type === "income") {
                 url = "/api/transaction/addIncome";
@@ -158,6 +177,7 @@ const TransactionList = (props) => {
 
             if (response.ok) {
                 setAddedTransaction(newTransactionData);
+                handleFilterClick();
             } else {
                 showFailedAlert("Failed adding transaction! Try again");
                 console.error(response);
@@ -195,6 +215,13 @@ const TransactionList = (props) => {
             categoryId: transaction.CategoryId,
             type: transaction.TransactionType,
         };
+
+        const error = validateTransactionData(newTransactionData);
+        if (error) {
+            showFailedAlert(error);
+            return;
+        }
+
         let response;
         switch (newTransactionData.type) {
             case "income":
@@ -527,25 +554,25 @@ const TransactionList = (props) => {
             )}
             <div className="row my-3">
                 <div className="col-md-6">
-                {transactions.length > 0 && showChart && (transactionType === "expenditure" || transactionType === "all") && (
+                    {transactions.length > 0 && showChart && (transactionType === "expenditure" || transactionType === "all") && (
                         <>
                             <div className="card mx-auto my-5 h-auto background-chart w-75" style={{ border: 'none' }}>
                                 <p style={{ fontWeight: 'bold', fontSize: '22px', marginBottom: '0px' }}>{translation[props.language].TransactionsPage.ExpByCategory}</p>
-                            
+
                                 <ExpensesChart transactions={transactions} categories={categories} findCategoryName={findCategoryName} />
                             </div>
-                    </>
+                        </>
                     )}
                 </div>
                 <div className="col-md-6">
-                {transactions.length > 0 && showChart && transactionType === "all" && (
+                    {transactions.length > 0 && showChart && transactionType === "all" && (
                         <>
                             <div className="card mx-auto my-5 h-auto background-chart w-75" style={{ border: 'none' }}>
                                 <p style={{ fontWeight: 'bold', fontSize: '22px' }}>{translation[props.language].TransactionsPage.Report}</p> </div>
-                        <TransactionsChart transactions={transactions} totalIncomes={totalIncomes} totalExpenditures={totalExpenditures} />
-                                <h3 style={{ fontSize: '26px', textAlign: 'center', marginBottom: '20px', marginTop: '10px' }}> {translation[props.language].TransactionsPage.Remaining} <span style={{ color: 'lightgreen', fontSize: '26px' }}>{remainingAmount}</span></h3>
-                           
-                    </>
+                            <TransactionsChart transactions={transactions} totalIncomes={totalIncomes} totalExpenditures={totalExpenditures} />
+                            <h3 style={{ fontSize: '26px', textAlign: 'center', marginBottom: '20px', marginTop: '10px' }}> {translation[props.language].TransactionsPage.Remaining} <span style={{ color: 'lightgreen', fontSize: '26px' }}>{remainingAmount}</span></h3>
+
+                        </>
                     )}
                 </div>
                 {transactions.map((transaction, i) => (
