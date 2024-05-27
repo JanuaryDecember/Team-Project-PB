@@ -1,15 +1,16 @@
+using expenses_tracker_pb.Server.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<ETDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("KasiaConnection")));
+var connectionString = DatabaseManagmentService.getConnectionString(builder);
+builder.Services.AddDbContext<ETDbContext>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddCors();
 
@@ -39,6 +40,8 @@ builder.Services.AddTransient<GoogleDriveService>();
 
 var app = builder.Build();
 
+DatabaseManagmentService.MigrationInitialisation(app);
+
 app.UseCors(builder =>
 {
     builder.AllowAnyOrigin()
@@ -53,6 +56,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
 
 app.UseAuthorization();
 
