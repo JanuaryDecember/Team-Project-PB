@@ -191,6 +191,27 @@ const TransactionForm = ({ onSubmit, onCancel, walletId, props }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!newTransaction.title || !newTransaction.description || !newTransaction.amount || !newTransaction.date) {
+            setFormError("All fields are required.");
+            return;
+        }
+
+        if (newTransaction.title.length < 3 || newTransaction.title.length > 20) {
+            setFormError("Title must be at least 3 characters long and less than 20 characters long.");
+            return;
+        }
+
+        if (newTransaction.description.length < 3 || newTransaction.description.length > 30) {
+            setFormError("Description must be at least 3 characters long and less than 30 characters long");
+            return;
+        }
+
+        if (isNaN(newTransaction.amount) || newTransaction.amount <= 0) {
+            setFormError("Amount must be a greater than 0.");
+            return;
+        }
+
         let newCat = { name: customCategory, type: '' };
         let newTrans = {
             title: newTransaction.title,
