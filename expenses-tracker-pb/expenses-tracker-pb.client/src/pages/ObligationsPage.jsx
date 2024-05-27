@@ -131,6 +131,12 @@ const ObligationsPage = (props) => {
     };
 
     const handleDelete = async (obligationId) => {
+        const userConfirmed = window.confirm(translation[props.language].Obligations.DeleteConfirm);
+
+        if (!userConfirmed) {
+            return;
+        }
+
         try {
             const response = await fetch(`/api/obligation/deleteObligation/${obligationId}`, {
                 method: "DELETE",
@@ -149,6 +155,7 @@ const ObligationsPage = (props) => {
     const handleRepay = async (obligationId) => {
         setRepayObligationId(obligationId);
     };
+
 
     const handleConfirm = async (obligationId) => {
         setRepayObligationId(null);
@@ -203,11 +210,16 @@ const ObligationsPage = (props) => {
         setShowRepaymentsModal(false);
     };
 
+    const handleCancel = () => {
+        setSelectedObligationId(null);
+        setRepayObligationId(null);
+    };
+
     return (
         <div className="container mt-5">
             <>
                 <h2>{translation[props.language].Obligations.Obligations}</h2>
-                <button className="btn btn-primary" style={{ marginTop: "10px" }} onClick={handleToggleAddForm}>{translation[props.language].Obligations.AddObligation}</button>
+                <button className="btn btn-primary" style={{ marginTop: "10px" }} onClick={handleToggleAddForm}>{showAddForm ? translation[props.language].Obligations.Cancel : translation[props.language].Obligations.AddObligation}</button>
                 {showAddForm && <ObligationForm walletId={walletId} refreshObligationsList={fetchObligations} props={props} />}
                 <h3 style={{ marginTop: "20px" }}>{translation[props.language].TransactionsPage.Filter}</h3>
                 <select className="form-select" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
@@ -224,7 +236,7 @@ const ObligationsPage = (props) => {
                             style={{ minWidth: "30%" }}
                         >
                             <div className="card h-100 w-100 text-center">
-                                <button className="btn btn-dark position-absolute top-0 start-0" onClick={() => fetchRepayments(obligation.id)}>Details</button>
+                                <button className="btn btn-dark position-absolute top-0 start-0" onClick={() => fetchRepayments(obligation.id)}>{translation[props.language].Obligations.Details}</button>
                                 {selectedObligationId === obligation.id ? (
                                     <React.Fragment>
                                         <div className="row mb-3">
@@ -285,6 +297,7 @@ const ObligationsPage = (props) => {
                                         </div>
                                         {information && <div className="error" style={{ marginBottom: "10px" }}>{information}</div>}
                                         <button className="btn btn-dark" onClick={() => handleSave(obligation.id, obligation)}>{translation[props.language].Obligations.Save}</button>
+                                        <button className="btn btn-dark" style={{ marginTop: "5px", marginBottom: "5px" }} onClick={handleCancel}>{translation[props.language].Obligations.Cancel}</button>
                                     </React.Fragment>
                                 ) : (
                                     <React.Fragment>
@@ -308,6 +321,7 @@ const ObligationsPage = (props) => {
                                                 />
                                                 <div style={{ marginTop: "10px" }}>
                                                         <button className="btn btn-primary" onClick={() => handleConfirm(obligation.id)}>{translation[props.language].Obligations.Confirm}</button>
+                                                        <button className="btn btn-primary" style={{ marginLeft: "5px" }} onClick={handleCancel}>{translation[props.language].Obligations.Cancel}</button>
                                                 </div>
                                             </div>
                                         )}
@@ -356,7 +370,7 @@ const ObligationsPage = (props) => {
                                 </ul>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={handleCloseRepaymentsModal}>Close</button>
+                                <button type="button" className="btn btn-secondary" onClick={handleCloseRepaymentsModal}>{translation[props.language].Obligations.Close}</button>
                             </div>
                         </div>
                     </div>
