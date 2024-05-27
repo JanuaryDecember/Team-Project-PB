@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useNavigate } from "react-router-dom";
+import translation from "../assets/translation.json";
 
-
-function Budget() {
+function Budget(props) {
   
   const [budgets, setBudgets] = useState(null);
   const [userWalletList, setUserWalletList] = useState(null);
@@ -190,7 +190,7 @@ function Budget() {
       });
 
       if (response.ok) {
-        setAlertSuccess("Successfully created new budget!");
+          setAlertSuccess(translation[props.language].Budget.SuccessAlert);
         setAlertDanger(null);
         //location.reload();
         fetchBudgets();
@@ -275,7 +275,7 @@ function Budget() {
       });
 
       if (response.ok) {
-        setAlertSuccess("Budget successfully deleted!");
+          setAlertSuccess(translation[props.language].Budget.DeletedAlert);
         setAlertDanger(null);
         fetchBudgets();
       } else {
@@ -300,34 +300,34 @@ function Budget() {
   return (
     <>
       <div className="container">
-        <h2 className="m-4">Budget</h2>
+              <h2 className="m-4">{translation[props.language].Budget.Budget}</h2>
         <form onSubmit={submitNewBudget} className="row row-cols-lg-auto align-items-center border rounded p-2">
           <div className="col-12 m-1">
-            <label className="visually-hidden" htmlFor="name">Name</label>
+                      <label className="visually-hidden" htmlFor="name">{translation[props.language].Budget.BudName} </label>
             <div className="input-group">
               <div className="input-group-text">@</div>
-              <input type="text" className="form-control" id="name" placeholder="Budget name" onChange={(e) => setNewBudgetName(e.target.value)} required/>
+                          <input type="text" className="form-control" id="name" placeholder={translation[props.language].Budget.BudName } onChange={(e) => setNewBudgetName(e.target.value)} required/>
             </div>
           </div>
 
           <div className="col-12 m-1">
-            <label className="visually-hidden" htmlFor="totalIncome">TotalIncome</label>
+                      <label className="visually-hidden" htmlFor="totalIncome">{translation[props.language].Budget.TotalInc} </label>
             <div className="input-group">
-              <input type="number" className="form-control" id="totalIncome" placeholder="Base income" onChange={(e) => setNewBudgetTotalIncome(e.target.value)}required/>
+                          <input type="number" className="form-control" id="totalIncome" placeholder={translation[props.language].Budget.BaseInc} onChange={(e) => setNewBudgetTotalIncome(e.target.value)}required/>
             </div>
           </div>
 
           <div className="col-12 m-1">
-            <label className="visually-hidden" htmlFor="totalExpenditure">TotalExpenditure</label>
+                      <label className="visually-hidden" htmlFor="totalExpenditure">{translation[props.language].Budget.TotalExp} </label>
             <div className="input-group">
-              <input type="number" className="form-control" id="totalExpenditure" placeholder="Current expensess" onChange={(e) => setNewBudgetTotalExpenditure(e.target.value)} required/>
+                          <input type="number" className="form-control" id="totalExpenditure" placeholder={translation[props.language].Budget.CurExp} onChange={(e) => setNewBudgetTotalExpenditure(e.target.value)} required/>
             </div>
           </div>
 
           <div className="col-12 m-1">
             <label className="visually-hidden" htmlFor="walletId">Preference</label>
             <select className="form-select" id="walletId" onChange={(e) => setnewBudgetWalletId(e.target.value)} required>
-                <option disabled>Wallet</option>
+                          <option disabled>{translation[props.language].Budget.Wallet}</option>
                 {userWalletList && userWalletList.map((wallet, index) => (
                   <option key={index} value={wallet.id}>{wallet.name}</option>
                 ))}
@@ -337,7 +337,7 @@ function Budget() {
           <div className="col-12 m-1">
             <label className="visually-hidden" htmlFor="budgetCategoryId">Preference</label>
             <select className="form-select" id="budgetCategoryId" onChange={(e) => setnewBudgetBudgetCategoryId(e.target.value)} required>
-            <option disabled>Budget Category</option>
+                          <option disabled>{translation[props.language].Budget.Category} </option>
               {budgetCategoriesList && budgetCategoriesList.map((category, index) => (
                 <option key={index} value={category.id}>{category.name}</option>
               ))}
@@ -345,7 +345,7 @@ function Budget() {
           </div>
 
           <div className="col-12 m-1">
-            <button type="button" onClick={submitNewBudget} className="btn btn-primary" required>Add new budget</button>
+                      <button type="button" onClick={submitNewBudget} className="btn btn-primary" required>{translation[props.language].Budget.AddNew} </button>
             {/* <button type="submit" className="btn btn-primary" required>Add new budget</button> */}
           </div>
         </form>
@@ -362,16 +362,16 @@ function Budget() {
                       {budget.name}
                     </h5>
                     <p className="card-text">
-                      Total Income: {budget.totalIncome}<br/>
-                      Total Expenditure: {budget.totalExpenditure}<br/>
-                      RemainingBalance: {budget.remainingBalance}<br />
-                      Wallet: {budget.walletName}<br />
-                      Category: {budget.budgetCategoryName}
+                                  {translation[props.language].Budget.TotalInc}: {budget.totalIncome}<br/>
+                                  {translation[props.language].Budget.TotalExp}:  {budget.totalExpenditure}<br/>
+                                  {translation[props.language].Budget.RemBalance}:  {budget.remainingBalance}<br />
+                                  {translation[props.language].Budget.Wallet}:  {budget.walletName}<br />
+                                  {translation[props.language].Budget.Category}:  {budget.budgetCategoryName}
                     </p>
-                    <button onClick={() => handleDetailsBudget(budget)} className="btn btn-primary me-2 btn-block" style={{ minWidth: "100%" }}>Details</button>
+                              <button onClick={() => handleDetailsBudget(budget)} className="btn btn-primary me-2 btn-block" style={{ minWidth: "100%" }}>{translation[props.language].Budget.Details} </button>
                     <div className="position-absolute top-0 end-0 m-2">
-                      <button onClick={() => handleEditBudget(budget)} className="btn btn-warning btn-sm me-2">Edit</button>
-                      <button onClick={() => handleDeleteBudget(budget)} className="btn btn-danger btn-sm">Delete</button>        
+                                  <button onClick={() => handleEditBudget(budget)} className="btn btn-warning btn-sm me-2">{translation[props.language].Budget.Edit} </button>
+                                  <button onClick={() => handleDeleteBudget(budget)} className="btn btn-danger btn-sm">{translation[props.language].Budget.Delete} </button>        
                     </div>
                   </div>
                 </div>
@@ -386,37 +386,37 @@ function Budget() {
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h5 className="modal-title">Edit Budget</h5>
+                                  <h5 className="modal-title">{translation[props.language].Budget.EditBud} </h5>
                   <button type="button" className="btn-close" aria-label="Close" onClick={handleCancelEdit}></button>
                 </div>
                 <div className="modal-body">
                 {selectedBudget && (
                   <form>
                     <div className="mb-3">
-                      <label htmlFor="name" className="form-label">Name</label>
+                                              <label htmlFor="name" className="form-label">{translation[props.language].Budget.BudName} </label>
                       <input type="text" className="form-control" id="name" value={selectedBudget.name} onChange={(e) => setSelectedBudget({ ...selectedBudget, name: e.target.value })} />
                     </div>
                     <div className="mb-3">
-                      <label htmlFor="totalIncome" className="form-label">Total Income</label>
+                                              <label htmlFor="totalIncome" className="form-label">{translation[props.language].Budget.TotalInc} </label>
                       <input type="number" className="form-control" id="totalIncome" value={selectedBudget.totalIncome} onChange={(e) => setSelectedBudget({ ...selectedBudget, totalIncome: e.target.value })} />
                     </div>
                     <div className="mb-3">
-                      <label htmlFor="totalExpenditure" className="form-label">Total Expenditure</label>
+                                              <label htmlFor="totalExpenditure" className="form-label">{translation[props.language].Budget.TotalExp} </label>
                       <input type="number" className="form-control" id="totalExpenditure" value={selectedBudget.totalExpenditure} onChange={(e) => setSelectedBudget({ ...selectedBudget, totalExpenditure: e.target.value })} />
                     </div>
                     <div className="mb-3">
-                      <label htmlFor="wallet" className="form-label">Wallet</label>
+                                              <label htmlFor="wallet" className="form-label">{translation[props.language].Budget.Wallet} </label>
                       <select className="form-select" id="wallet" onChange={(e) => setSelectedBudget({ ...selectedBudget, walletId: e.target.value })} required>
-                        <option disabled>Select Wallet</option>
+                                                  <option disabled>{translation[props.language].Budget.Wallet} </option>
                         {userWalletList && userWalletList.map((wallet, index) => (
                           <option key={index} value={wallet.id}>{wallet.name}</option>
                         ))}
                       </select>
                     </div>
                     <div className="mb-3">
-                      <label htmlFor="budgetCategory" className="form-label">Budget Category</label>
+                                              <label htmlFor="budgetCategory" className="form-label">{translation[props.language].Budget.Category} </label>
                       <select className="form-select" id="budgetCategory" value={selectedBudget.budgetCategory} onChange={(e) => setSelectedBudget({ ...selectedBudget, categoryId: e.target.value })} required>
-                        <option disabled>Select Budget Category</option>
+                                                  <option disabled>{translation[props.language].Budget.Category} </option>
                         {budgetCategoriesList && budgetCategoriesList.map((category, index) => (
                           <option key={index} value={category.id}>{category.name}</option>
                         ))}
@@ -426,8 +426,8 @@ function Budget() {
                 )}
                 </div>
                 <div className="modal-footer">
-                  <button type="button" className="btn btn-success" onClick={()=>handleSaveBudgetChanges(selectedBudget)}>Save</button>
-                  <button type="button" className="btn btn-danger" onClick={handleCancelEdit}>Cancel</button>
+                                  <button type="button" className="btn btn-success" onClick={() => handleSaveBudgetChanges(selectedBudget)}>{translation[props.language].Budget.Save} </button>
+                                  <button type="button" className="btn btn-danger" onClick={handleCancelEdit}>{translation[props.language].Budget.Cancel} </button>
                 </div>
               </div>
             </div>
@@ -445,7 +445,7 @@ function Budget() {
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content" >
                 <div className="modal-header" style={selectedBudget.remainingBalance < 0 ? { backgroundColor: 'rgba(255, 193, 7, 0.7)' } : {}}>
-                  <h5 className="modal-title">Budget detials</h5>
+                                      <h5 className="modal-title">{translation[props.language].Budget.DetailsBud} </h5>
                   <button
                     type="button"
                     className="btn-close"
@@ -457,11 +457,11 @@ function Budget() {
                   <table className="table ">
                     <thead>
                       <tr>
-                        <td><strong>Name</strong></td>
-                        <td><strong>Category</strong></td>
-                        <td><strong>Maximum</strong></td>
-                        <td><strong>Current</strong></td>
-                        <td><strong>Left</strong></td>
+                                                  <td><strong>{translation[props.language].Budget.BudName} </strong></td>
+                                                  <td><strong>{translation[props.language].Budget.Category} </strong></td>
+                                                  <td><strong>{translation[props.language].Budget.Max} </strong></td>
+                                                  <td><strong>{translation[props.language].Budget.Current} </strong></td>
+                                                  <td><strong>{translation[props.language].Budget.Left} </strong></td>
                       </tr>
                     </thead>
                     <tbody>
@@ -475,12 +475,12 @@ function Budget() {
                     </tbody>
                   </table>
                   <label>
-                    Transactions
+                                          {translation[props.language].Budget.Transactions}
                   </label>
                   {!budgetTransactions || budgetTransactions.length === 0 && (
                     <>
                       <div className="alert alert-danger" style={{ marginTop: "10px" }} role="alert">
-                        No transactions found for this budget.
+                                                  {translation[props.language].Budget.NoTransactions }
                       </div>
                     </>
                   )}
@@ -489,14 +489,14 @@ function Budget() {
                     <div className="mb-3" style={{height: '30vh', overflowY: 'auto'}}>
                       {budgetTransactions.map((transaction, index) => (
                         <p key={index} className="transaction border rounded p-2 m-2">
-                          Title: {transaction.title} <br/>
-                          Amount: {transaction.amount} <br/>
-                          Date: {transaction.date}
+                              {translation[props.language].Budget.Title}: {transaction.title} <br/>
+                              {translation[props.language].Budget.Amount}: {transaction.amount} <br/>
+                              {translation[props.language].Budget.Date}: {transaction.date}
                         </p>
                       ))}
                     </div>
                     <div className="">
-                      <button onClick={() => handleRedirectToNewTransaction(selectedBudget.walletId)} className="btn btn-success btn-sm me-2">Add transaction</button>        
+                                                  <button onClick={() => handleRedirectToNewTransaction(selectedBudget.walletId)} className="btn btn-success btn-sm me-2">{translation[props.language].Budget.AddTransaction}</button>        
                     </div>
                     </>
                   )}
@@ -512,15 +512,15 @@ function Budget() {
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Confirm Delete</h5>
+                                  <h5 className="modal-title">{translation[props.language].Budget.ConfirmDel}</h5>
                 <button type="button" className="btn-close" aria-label="Close" onClick={cancelDelete}></button>
               </div>
               <div className="modal-body">
-                <p>Are you sure you want to delete the budget "{selectedBudget.name}"?</p>
+                                  <p>{translation[props.language].Budget.ConfirmPrompt} "{selectedBudget.name}"?</p>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={cancelDelete}>Cancel</button>
-                <button type="button" className="btn btn-danger" onClick={() => confirmDelete(selectedBudget)}>Delete</button>
+                                  <button type="button" className="btn btn-secondary" onClick={cancelDelete}>{translation[props.language].Budget.Cancel}</button>
+                                  <button type="button" className="btn btn-danger" onClick={() => confirmDelete(selectedBudget)}>{translation[props.language].Budget.Delete}</button>
               </div>
             </div>
           </div>

@@ -184,7 +184,7 @@ const RootElement = (props) => {
                         return (
                             <div key={index} className="notification-block-container">
                                 <div className="notification-block">
-                                    <span><span className="bold-label">Wallet:</span> {walletName} <span className="bold-label">Name:</span> {obligationName} <span className="bold-label">Days until Due:</span> <span className={isDueSoon ? 'red-bold' : ''}>{daysUntilDue}</span></span>
+                                    <span><span className="bold-label">{translation[props.language].Navbar.Wallet}</span> {walletName} <span className="bold-label">{translation[props.language].Navbar.Name}</span> {obligationName} <span className="bold-label">{translation[props.language].Navbar.Days}</span> <span className={isDueSoon ? 'red-bold' : ''}>{daysUntilDue}</span></span>
                                 </div>
                                 <div className="button-container">
                                     <button className="btn btn-primary" onClick={() => { navigate(`/obligation/${walletId}`); setModalIsOpen(false); }}><i className="bi bi-search"></i></button>
@@ -194,7 +194,7 @@ const RootElement = (props) => {
                     } else {
                         return (
                             <React.Fragment key={index}>
-                                No obligations with upcoming due dates found.
+                                {translation[props.language].Navbar.NoOblig }
                             </React.Fragment>
                         );
                     }

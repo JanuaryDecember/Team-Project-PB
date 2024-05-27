@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
+import translation from "../assets/translation.json";
 
-const TransactionsChart = ({ transactions, totalIncomes, totalExpenditures }) => {
+const TransactionsChart = ({ transactions, totalIncomes, totalExpenditures, props }) => {
     const chartRef = useRef(null);
 
     useEffect(() => {
         
-        const labels = ['Incomes', 'Expenditures'];
+        const labels = [translation[props.language].Charts.Incomes, translation[props.language].Charts.Expenditures];
         const data = [totalIncomes, totalExpenditures ];
 
         if (chartRef.current !== null) {
