@@ -4,6 +4,8 @@ import ObligationForm from "../components/ObligationForm";
 import { useNavigate } from "react-router-dom";
 import { showSuccessAlert, showFailedAlert, showWarningAlert } from "../components/ToastifyAlert";
 import translation from "../assets/translation.json";
+import ObligationsChart from '../components/ObligationsChart';
+
 
 const ObligationsPage = (props) => {
     const { walletId } = useParams();
@@ -23,11 +25,19 @@ const ObligationsPage = (props) => {
     const [selectedObligationDetails, setSelectedObligationDetails] = useState({});
     const navigate = useNavigate();
     const [information, setInformation] = useState("");
+    const [chartReady, setChartReady] = useState(false);
+
 
     useEffect(() => {
         checkUserLogin();
         fetchObligations();
     }, [walletId, selectedCategory]);
+
+    useEffect(() => {
+        if (obligations.length > 0) {
+            setChartReady(true);
+        }
+    }, [obligations]);
 
     useEffect(() => {
         if (!isLoggedIn) {
@@ -215,6 +225,9 @@ const ObligationsPage = (props) => {
         setRepayObligationId(null);
     };
 
+    const totalRepaid = obligations.reduce((sum, obligation) => sum + (repaidAmounts[obligation.id] || 0) + obligation.paidAmount, 0);
+    const totalObligation = obligations.reduce((sum, obligation) => sum + obligation.amount, 0);
+
     return (
         <div className="container mt-5">
             <>
@@ -228,6 +241,7 @@ const ObligationsPage = (props) => {
                     <option value="Leasing">Leasing</option>
                     <option value="Fees">{translation[props.language].Obligations.Fees}</option>
                 </select>
+                {chartReady && <ObligationsChart totalRepaid={totalRepaid} totalObligation={totalObligation} />}
                 <div className="row my-3">
                     {obligations.map((obligation, index) => (
                         <div
