@@ -107,10 +107,10 @@ const DashboardPage = (props) => {
                     </div>
                     <div className="row">
                         <div className='col'>
-                            <Chart1 language={props.language} />
+                            <Chart1 props={props} />
                         </div>
                         <div className='col'>
-                            <Chart2 language={props.language} />
+                            <Chart2 props={props} />
                         </div>
                     </div>
                 </div>

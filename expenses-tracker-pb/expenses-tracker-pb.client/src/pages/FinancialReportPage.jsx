@@ -267,7 +267,7 @@ const MonthlySummary = (props) => {
                                     <h3>{translation[props.language].Report.NetBalance} {summary.netBalance}</h3>
                                 </div>
                             </div>
-                            <ChartReport summary={summary} />
+                            <ChartReport summary={summary} props={props} />
                         </div>
                     )}
 
@@ -331,12 +331,12 @@ const MonthlySummary = (props) => {
                 <div>
                     <h1 className="divider"></h1>
 
-                    <Comparison walletId={walletId} year={year} month={month} />
+                    <Comparison walletId={walletId} year={year} month={month} props={props} />
                 </div>
             )}
             {!isLoggedIn && (
                 <div className="alert alert-danger" role="alert">
-                    You are not logged in. Redirecting to login page...
+                    {translation[props.language].Categories.NotLoggedIn}
                 </div>
             )}
         </div>

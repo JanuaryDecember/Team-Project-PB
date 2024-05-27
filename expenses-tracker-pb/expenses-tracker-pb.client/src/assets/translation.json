@@ -10,6 +10,10 @@
 		},
 		"Navbar": {
 			"Home": "Strona główna",
+			"Wallet": "Portfel:",
+			"Name": "Nazwa:",
+			"Days": "Dni do terminu:",
+			"NoOblig": "Brak zobowiązań ze zbliżającym się terminem spłaty.",
 			"Modal": {
 				"Title": "Aktualne zobowiązania",
 				"None": "Nie znaleziono żadnych zobowiązań finansowych!"
@@ -109,10 +113,37 @@
 			"CategoryExists": "Kategoria z tą nazwą już istnieje!"
 		},
 		"Budget": {
-			"Exceeded": "Exceeded Budget!",
-			"Budget": "Exceeded Budget!",
-			"TotalExp": "Exceeded Budget!",
-			"Category": "Exceeded Budget!"
+			"Exceeded": "Przekroczono budżet!",
+			"Budget": "Budżet",
+			"TotalExp": "Łączne wydatki",
+			"TotalInc": "Łączny przychód",
+			"Category": "Kategoria",
+			"BudName": "Nazwa budżetu",
+			"BaseInc": "Podstawowy przychód",
+			"CurExp": "Aktualne wydatki",
+			"AddNew": "Dodaj nowy budżet",
+			"RemBalance": "Pozostałe środki",
+			"Wallet": "Portfel",
+			"Details": "Szczegóły",
+			"Edit": "Edytuj",
+			"Delete": "Usuń",
+			"EditBud": "Edytuj budżet",
+			"Save": "Zapisz",
+			"Cancel": "Anuluj",
+			"DetailsBud": "Szczegóły budżetu",
+			"Max": "Maksymalnie",
+			"Current": "Aktualnie",
+			"Left": "Pozostało",
+			"Transactions": "Transakcje",
+			"Title": "Tytuł",
+			"Amount": "Kwota",
+			"Date": "Data",
+			"AddTransaction": "Dodaj transakcje",
+			"SuccessAlert": "Pomyślnie dodano nowy budżet!",
+			"ConfirmDel": "Potwierdź usunięcie",
+			"ConfirmPrompt": "Czy na pewno chcesz usunąć budżet ",
+			"DeletedAlert": "Pomyślnie usunięto budżet!",
+			"NoTransactions": "Nie znaleziono transakcji dla tego budżetu."
 
 		},
 		"Categories": {
@@ -283,6 +314,14 @@
 			"Disable": "Dezaktywuj",
 			"Enable": "Aktywuj",
 			"Incorrect": "Odpowiedź jest nieprawidłowa."
+		},
+		"Charts": {
+			"IncAndExp": "Przychody i wydatki",
+			"Incomes": "Przychody",
+			"Expenditures": "Wydatki",
+			"ExpCat": "Kategorie wydatków",
+			"FinSum": "Podsumowanie finansów",
+			"MonthlyComparison": "Miesięczne porównanie wydatków"
 		}
 
 
@@ -298,6 +337,10 @@
 		},
 		"Navbar": {
 			"Home": "Home",
+			"Wallet": "Wallet:",
+			"Name": "Name:",
+			"Days": "Days until Due:",
+			"NoOblig": "No obligations with upcoming due dates found.",
 			"Modal": {
 				"Title": "Current obligations",
 				"None": "No obligations with upcoming due dates found!"
@@ -400,7 +443,34 @@
 			"Exceeded": "Exceeded Budget!",
 			"Budget": "Budget",
 			"TotalExp": "Total Expenditure",
-			"Category": "Category"
+			"TotalInc": "Total Income",
+			"Category": "Category",
+			"BudName": "Budget name",
+			"BaseInc": "Base income",
+			"CurExp": "Current expensess",
+			"AddNew": "Add new budget",
+			"RemBalance": "Remaining Balance",
+			"Wallet": "Wallet",
+			"Details": "Details",
+			"Edit": "Edit",
+			"Delete": "Delete",
+			"EditBud": "Edit budget",
+			"Save": "Save",
+			"Cancel": "Cancel",
+			"DetailsBud": "Budget details",
+			"Max": "Maximum",
+			"Current": "Current",
+			"Left": "Left",
+			"Transactions": "Transactions",
+			"Title": "Title",
+			"Amount": "Amount",
+			"Date": "Date",
+			"AddTransaction": "Add transaction",
+			"SuccessAlert": "Successfully created new budget!",
+			"ConfirmDel": "Confirm Delete",
+			"ConfirmPrompt": "Are you sure you want to delete the budget ",
+			"DeletedAlert": "Budget successfully deleted!",
+			"NoTransactions": "No transactions found for this budget."
 		},
 		"Categories": {
 			"Categories": "Categories",
@@ -570,6 +640,14 @@
 			"Disable": "Disable",
 			"Enabled": "Enabled",
 			"Incorrect": "Answer is incorrect"
+		},
+		"Charts": {
+			"IncAndExp": "Incomes & Expenses",
+			"Incomes": "Incomes",
+			"Expenditures": "Expenditures",
+			"ExpCat": "Expense Categories",
+			"FinSum": "Financial Summary",
+			"MonthlyComparison": "Monthly Expenditure Comparison"
 		}
 
 

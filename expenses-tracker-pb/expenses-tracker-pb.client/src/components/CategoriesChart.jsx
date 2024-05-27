@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Chart from "chart.js/auto";
+import translation from "../assets/translation.json";
 
-const Chart2 = () => {
+const Chart2 = ({props }) => {
     const [chart2, setChart2] = useState([]);
 
     useEffect(() => {
@@ -58,7 +59,7 @@ const Chart2 = () => {
 
     return (
         <div className="card mx-auto my-5 h-auto background-my w-75">
-            <p style={{ fontWeight: "bold", fontSize: "18px" }}>Expense Categories</p>
+            <p style={{ fontWeight: "bold", fontSize: "18px" }}>{translation[props.language].Charts.ExpCat}</p>
             <canvas id="myChart2" width="520" height="520"></canvas>
         </div>
     );

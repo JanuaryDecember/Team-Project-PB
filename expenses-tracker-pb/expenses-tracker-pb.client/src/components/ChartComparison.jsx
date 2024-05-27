@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
+import translation from "../assets/translation.json";
 
-const Comparison = ({ walletId, year, month }) => {
+const Comparison = ({ walletId, year, month, props }) => {
     const chartRef = useRef(null);
     const [comparisonData, setComparisonData] = useState([]);
     const [chartInstance, setChartInstance] = useState(null);
@@ -44,7 +45,7 @@ const Comparison = ({ walletId, year, month }) => {
                     labels: months,
                     datasets: [
                         {
-                            label: 'Incomes',
+                            label: translation[props.language].Charts.Incomes,
                             backgroundColor: 'lightgreen',
                             borderColor: 'green',
                             borderWidth: 1,
@@ -53,7 +54,7 @@ const Comparison = ({ walletId, year, month }) => {
                             categoryPercentage: 0.9,
                         },
                         {
-                            label: 'Expenditures',
+                            label: translation[props.language].Charts.Expenditures,
                             backgroundColor: 'lightcoral',
                             borderColor: 'red',
                             borderWidth: 1,
@@ -88,7 +89,7 @@ const Comparison = ({ walletId, year, month }) => {
 
     return (
         <div className="card mx-auto my-5 h-auto background-my col-12 col-md-8 col-lg-6" >
-            <p style={{ fontWeight: 'bold', fontSize: '18px' }}>Monthly Expenditure Comparison</p>
+            <p style={{ fontWeight: 'bold', fontSize: '18px' }}>{translation[props.language].Charts.MonthlyComparison }</p>
             <div style={{ height: '300px' }}>
                 <canvas ref={chartRef} width="400" height="400"></canvas>
             </div>

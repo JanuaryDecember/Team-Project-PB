@@ -542,7 +542,7 @@ const TransactionList = (props) => {
                         <>
                             <div className="card mx-auto my-5 h-auto background-chart w-75" style={{ border: 'none' }}>
                                 <p style={{ fontWeight: 'bold', fontSize: '22px' }}>{translation[props.language].TransactionsPage.Report}</p> </div>
-                        <TransactionsChart transactions={transactions} totalIncomes={totalIncomes} totalExpenditures={totalExpenditures} />
+                            <TransactionsChart transactions={transactions} totalIncomes={totalIncomes} totalExpenditures={totalExpenditures} props={props} />
                                 <h3 style={{ fontSize: '26px', textAlign: 'center', marginBottom: '20px', marginTop: '10px' }}> {translation[props.language].TransactionsPage.Remaining} <span style={{ color: 'lightgreen', fontSize: '26px' }}>{remainingAmount}</span></h3>
                            
                     </>

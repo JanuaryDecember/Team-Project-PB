@@ -9,7 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<ETDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("KasiaConnection")));
+builder.Services.AddDbContext<ETDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("JakubConnection")));
 
 builder.Services.AddCors();
 
