@@ -187,7 +187,7 @@ const ObligationForm = ({ walletId, onAddObligation, refreshObligationsList, pro
                             className="form-control"
                             name="amount"
                             value={obligationRequest.obligation.amount}
-                            placeholder="Enter amount"
+                            placeholder={translation[props.language].Obligations.EnAmount}
                             onChange={(e) =>
                                 setObligationRequest({
                                     ...obligationRequest,
