@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Text.Json;
+using expenses_tracker_pb.Server.Model;
 
 namespace _2023pz_trrepo.Controllers
 {
@@ -11,8 +12,8 @@ namespace _2023pz_trrepo.Controllers
     [Route("/api/export")]
     public class ExportController : ControllerBase
     {
-        private readonly ETDbContext _dbContext;
-        public ExportController(ETDbContext dbContext)
+        private readonly EtDbContext _dbContext;
+        public ExportController(EtDbContext dbContext)
         {
             _dbContext = dbContext;
         }

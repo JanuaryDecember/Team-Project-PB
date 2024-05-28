@@ -1,21 +1,27 @@
 ﻿using expenses_tracker_api.Model;
-using expenses_tracker_pb.Server.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-public class ETDbContext : DbContext
+namespace expenses_tracker_pb.Server.Model;
+
+public class EtDbContext : DbContext
 {
-    public ETDbContext() {; }
-    public ETDbContext(DbContextOptions<ETDbContext> options) : base(options) { }
-    public virtual DbSet<Income> Incomes { get; set; }
-    public DbSet<User> Users { get; set; }
-    public virtual DbSet<Expenditure> Expenditures { get; set; }
-    public virtual DbSet<Wallet> Wallets { get; set; }
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<Obligation> Obligations { get; set; }
-    public DbSet<RepayEntry> RepayEntries { get; set; }
-    public DbSet<Budget> Budgets { get; set; }
-    public DbSet<SecurityQuestion> SecurityQuestions { get; set; }
+    public EtDbContext()
+    {
+    }
+
+    public EtDbContext(DbContextOptions<EtDbContext> options) : base(options)
+    {
+    }
+
+    public DbSet<Transaction> Transactions { get; init; }
+    public DbSet<User> Users { get; init; }
+    public DbSet<Wallet> Wallets { get; init; }
+    public DbSet<Category> Categories { get; init; }
+    public DbSet<Obligation> Obligations { get; init; }
+    public DbSet<RepayEntry> RepayEntries { get; init; }
+    public DbSet<Budget> Budgets { get; init; }
+    public DbSet<SecurityQuestion> SecurityQuestions { get; init; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,34 +34,8 @@ public class ETDbContext : DbContext
             .WithMany(u => u.Wallets)
             .HasForeignKey(w => w.UserId);
 
-        modelBuilder.Entity<Category>(x =>
-        {
-            x.HasKey(c => c.Id);
-        });
+        modelBuilder.Entity<Category>(x => { x.HasKey(c => c.Id); });
 
-        modelBuilder.Entity<Income>(x =>
-        {
-            x.HasKey(i => i.Id);
-            x.HasOne(i => i.Wallet)
-            .WithMany(w => w.Incomes)
-            .HasForeignKey(i => i.WalletId);
-            x.HasOne(i => i.Category)
-           .WithMany()
-           .HasForeignKey(i => i.CategoryId);
-            x.Property(x => x.Date).HasColumnType("Date");
-        });
-
-        modelBuilder.Entity<Expenditure>(x =>
-        {
-            x.HasKey(e => e.Id);
-            x.HasOne(e => e.Wallet)
-            .WithMany(w => w.Expenditures)
-            .HasForeignKey(e => e.WalletId);
-            x.HasOne(e => e.Category)
-           .WithMany()
-           .HasForeignKey(e => e.CategoryId);
-            x.Property(x => x.Date).HasColumnType("Date");
-        });
 
         modelBuilder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims");
         modelBuilder.Entity<IdentityUserRole<string>>(b =>
@@ -76,10 +56,11 @@ public class ETDbContext : DbContext
             b.ToTable("UserTokens");
         });
 
+        modelBuilder.Entity<Transaction>().HasKey(t => t.Id);
+
         modelBuilder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
         modelBuilder.Entity<IdentityRole>().ToTable("Roles");
 
-        // Default security questions
         modelBuilder.Entity<SecurityQuestion>().HasData(
             new SecurityQuestion
             {
@@ -99,10 +80,15 @@ public class ETDbContext : DbContext
         );
 
         modelBuilder.Entity<Category>().HasData(
-             new Category { Id = 1, Name = "Clothes", Type = CategoryType.Expenditure, IsDefault = true, IconId = 1, UserId = null },
-             new Category { Id = 2, Name = "Food", Type = CategoryType.Expenditure, IsDefault = true, IconId = 2, UserId = null },
-             new Category { Id = 3, Name = "Work", Type = CategoryType.Income, IsDefault = true, IconId = 3, UserId = null }
-         );
+            new Category
+            {
+                Id = 1, Name = "Clothes", Type = CategoryType.Expenditure, IsDefault = true, IconId = 1, UserId = null
+            },
+            new Category
+                { Id = 2, Name = "Food", Type = CategoryType.Expenditure, IsDefault = true, IconId = 2, UserId = null },
+            new Category
+                { Id = 3, Name = "Work", Type = CategoryType.Income, IsDefault = true, IconId = 3, UserId = null }
+        );
 
         base.OnModelCreating(modelBuilder);
     }

@@ -1,4 +1,5 @@
-﻿using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
+﻿using expenses_tracker_pb.Server.Model;
+using OfficeOpenXml.FormulaParsing.Excel.Functions.DateTime;
 
 namespace expenses_tracker_api.Model
 {

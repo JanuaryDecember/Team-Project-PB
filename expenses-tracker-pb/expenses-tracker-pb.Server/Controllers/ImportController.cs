@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using System.Text.RegularExpressions;
 using System;
+using expenses_tracker_pb.Server.Model;
 
 namespace _2023pz_trrepo.Controllers
 {
@@ -12,8 +13,8 @@ namespace _2023pz_trrepo.Controllers
     [Route("/api/import")]
     public class ImportController : ControllerBase
     {
-        private readonly ETDbContext _dbContext;
-        public ImportController(ETDbContext dbContext)
+        private readonly EtDbContext _dbContext;
+        public ImportController(EtDbContext dbContext)
         {
             _dbContext = dbContext;
         }

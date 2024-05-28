@@ -3,10 +3,11 @@ using Google.Authenticator;
 using Microsoft.AspNetCore.Identity;
 using System.Reflection;
 using System.Security.Authentication;
+using expenses_tracker_pb.Server.Model;
 
 namespace expenses_tracker_pb.Server.Services.UserService
 {
-    public class UserService(UserManager<User> userManager, EmailSender emailSender, ETDbContext dbContext, IHttpContextAccessor httpContextAccessor) : IUserService
+    public class UserService(UserManager<User> userManager, EmailSender emailSender, EtDbContext dbContext, IHttpContextAccessor httpContextAccessor) : IUserService
     {
         public async Task ChangePasswordWith2Fa(PasswordChangeRequest request)
         {

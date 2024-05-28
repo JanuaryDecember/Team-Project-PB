@@ -1,107 +1,96 @@
-﻿using expenses_tracker_pb.Server.Services.WalletService;
+﻿using System.Security.Authentication;
+using expenses_tracker_pb.Server.Services.WalletService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Authentication;
 
-namespace expenses_tracker_pb.Server.Controllers
+namespace expenses_tracker_pb.Server.Controllers;
+
+[ApiController]
+[Route("api/user/wallet")]
+public class WalletController(IWalletService walletService) : ControllerBase
 {
-    [ApiController]
-    [Route("api/user/wallet")]
-    public class WalletController(IWalletService walletService) : ControllerBase
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> GetWallets()
     {
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> GetWallets()
+        try
         {
-            try
-            {
-                var wallets = await walletService.GetWallets();
-                return Ok(wallets);
-            }
-            catch (Exception e)
-            {
-                if (e is AuthenticationException || e is InvalidCredentialException)
-                {
-                    return BadRequest(e.Message);
-                }
-                return StatusCode(500, e.Message);
-            }
+            var wallets = await walletService.GetWallets();
+            return Ok(wallets);
         }
-
-        [Authorize]
-        [HttpGet("{walletId}")]
-        public async Task<IActionResult> GetWallet(string WalletId)
+        catch (Exception e)
         {
-            try
-            {
-                var wallets = await walletService.GetWallets();
-                return Ok(wallets);
-            }
-            catch (Exception e)
-            {
-                if (e is AuthenticationException || e is InvalidCredentialException)
-                {
-                    return BadRequest(e.Message);
-                }
-                return StatusCode(500, e.Message);
-            }
+            return e is AuthenticationException or InvalidCredentialException
+                ? BadRequest(e.Message)
+                : StatusCode(500, e.Message);
         }
+    }
 
-        [Authorize]
-        [HttpPost]
-        public async Task<IActionResult> AddWallet([FromBody] WalletRequest request)
+    [Authorize]
+    [HttpGet("{walletId:long}")]
+    public async Task<IActionResult> GetWallet(long walletId)
+    {
+        try
         {
-            try
-            {
-                await walletService.AddWallet(request);
-                return Ok("Wallet added succesfully");
-            }
-            catch (Exception e)
-            {
-                if (e is AuthenticationException || e is InvalidCredentialException)
-                {
-                    return BadRequest(e.Message);
-                }
-                return StatusCode(500, e.Message);
-            }
+            var wallet = await walletService.GetWallet(walletId);
+            return Ok(wallet);
         }
-
-        [Authorize]
-        [HttpDelete("{WalletId}")]
-        public async Task<IActionResult> DeleteWallet(string WalletId)
+        catch (Exception e)
         {
-            try
-            {
-                await walletService.DeleteWallet(WalletId);
-                return Ok("Wallet removed successfully");
-            }
-            catch (Exception e)
-            {
-                if (e is AuthenticationException || e is InvalidCredentialException)
-                {
-                    return BadRequest(e.Message);
-                }
-                return StatusCode(500, e.Message);
-            }
+            return e is AuthenticationException or InvalidCredentialException
+                ? BadRequest(e.Message)
+                : StatusCode(500, e.Message);
         }
+    }
 
-        [Authorize]
-        [HttpPut("{WalletId}")]
-        public async Task<IActionResult> UpdateWallet(string WalletId, [FromBody] string Name)
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> AddWallet([FromBody] WalletAddRequest request)
+    {
+        try
         {
-            try
-            {
-                await walletService.UpdateWallet(WalletId, Name);
-                return Ok("Wallet updated successfully");
-            }
-            catch (Exception e)
-            {
-                if (e is AuthenticationException || e is InvalidCredentialException)
-                {
-                    return BadRequest(e.Message);
-                }
-                return StatusCode(500, e.Message);
-            }
+            await walletService.AddWallet(request);
+            return Ok("Wallet added successfully");
+        }
+        catch (Exception e)
+        {
+            return e is AuthenticationException or InvalidCredentialException
+                ? BadRequest(e.Message)
+                : StatusCode(500, e.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpDelete("{walletId:long}")]
+    public async Task<IActionResult> DeleteWallet(long walletId)
+    {
+        try
+        {
+            await walletService.DeleteWallet(walletId);
+            return Ok("Wallet removed successfully");
+        }
+        catch (Exception e)
+        {
+            return e is AuthenticationException or InvalidCredentialException
+                ? BadRequest(e.Message)
+                : StatusCode(500, e.Message);
+        }
+    }
+
+    [Authorize]
+    [HttpPut]
+    public async Task<IActionResult> UpdateWallet([FromBody] WalletUpdateRequest request)
+    {
+        try
+        {
+            await walletService.UpdateWallet(request);
+            return Ok("Wallet updated successfully");
+        }
+        catch (Exception e)
+        {
+            return e is AuthenticationException or InvalidCredentialException
+                ? BadRequest(e.Message)
+                : StatusCode(500, e.Message);
         }
     }
 }

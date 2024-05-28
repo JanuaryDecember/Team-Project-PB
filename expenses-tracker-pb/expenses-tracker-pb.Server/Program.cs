@@ -1,3 +1,4 @@
+using expenses_tracker_pb.Server.Model;
 using expenses_tracker_pb.Server.Services.AuthenticationService;
 using expenses_tracker_pb.Server.Services.UserService;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -13,7 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<ETDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Jan2Connection")));
+builder.Services.AddDbContext<EtDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Jan2Connection")));
 
 builder.Services.AddCors();
 
@@ -32,7 +33,7 @@ builder.Services.AddAuthentication(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 builder.Services.AddIdentity<User, IdentityRole>()
-    .AddEntityFrameworkStores<ETDbContext>()
+    .AddEntityFrameworkStores<EtDbContext>()
     .AddDefaultTokenProviders();
 builder.Services.AddAuthorization();
 

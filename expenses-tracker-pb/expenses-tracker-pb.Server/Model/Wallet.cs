@@ -1,22 +1,18 @@
-using expenses_tracker_api.Model;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using expenses_tracker_api.Model;
 
+namespace expenses_tracker_pb.Server.Model;
 
 public class Wallet
 {
-    [Key]
     public long Id { get; set; }
-
-    public string Name { get; set; }
-
+    [MaxLength(255)] public string Name { get; set; } = string.Empty;
     public long IconId { get; set; }
-
-    public double AccountBalance { get; set; }
-    public string UserId { get; set; }
-    public User User;
-    public ICollection<Expenditure> Expenditures { get; set; }
-    public ICollection<Income> Incomes { get; set; }
-    public ICollection<Obligation> Obligations { get; set; }
-    public ICollection<Budget> Budgets { get; set; }
+    [Column(TypeName = "decimal(18,2)")] public decimal AccountBalance { get; set; }
+    [MaxLength(255)] public string UserId { get; set; } = string.Empty;
+    public User User { get; set; } = new User();
+    public ICollection<Transaction> Transactions { get; set; } = [];
+    public ICollection<Obligation> Obligations { get; set; } = [];
+    public ICollection<Budget> Budgets { get; set; } = [];
 }

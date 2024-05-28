@@ -4,11 +4,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Authentication;
 using System.Text;
+using expenses_tracker_pb.Server.Model;
 
 
 namespace expenses_tracker_pb.Server.Services.AuthenticationService
 {
-    public class AuthenticationService(UserManager<User> userManager, SignInManager<User> signInManager, ETDbContext dbContext, EmailSender emailSender) : IAuthenticationService
+    public class AuthenticationService(UserManager<User> userManager, SignInManager<User> signInManager, EtDbContext dbContext, EmailSender emailSender) : IAuthenticationService
     {
         public async Task Register(RegisterRequest request)
         {

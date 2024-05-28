@@ -2,14 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using expenses_tracker_pb.Server.Model;
 
 [ApiController]
 [Route("/api/chart")]
 public class ChartController : Controller
 {
-    private readonly ETDbContext _dbContext;
+    private readonly EtDbContext _dbContext;
 
-    public ChartController(ETDbContext dbContext)
+    public ChartController(EtDbContext dbContext)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
     }

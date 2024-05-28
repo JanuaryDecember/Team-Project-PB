@@ -6,6 +6,7 @@ using expenses_tracker_api.Model;
 using expenses_tracker_api.Model.Request;
 using System.Text.Json;
 using DocumentFormat.OpenXml.Spreadsheet;
+using expenses_tracker_pb.Server.Model;
 
 namespace expenses_tracker_api.Controllers
 {
@@ -13,9 +14,9 @@ namespace expenses_tracker_api.Controllers
     [Route("/api/obligation")]
     public class ObligationsController : ControllerBase
     {
-        private readonly ETDbContext _dbContext;
+        private readonly EtDbContext _dbContext;
 
-        public ObligationsController(ETDbContext dbContext)
+        public ObligationsController(EtDbContext dbContext)
         {
             _dbContext = dbContext;
         }

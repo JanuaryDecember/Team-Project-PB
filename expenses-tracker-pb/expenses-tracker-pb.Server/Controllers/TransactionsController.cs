@@ -1,83 +1,77 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using expenses_tracker_pb.Server.Model;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
-using System.Globalization;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
-using Azure;
-using Azure.AI.FormRecognizer.DocumentAnalysis;
+
+namespace expenses_tracker_pb.Server.Controllers;
 
 [ApiController]
 [Route("/api/transaction")]
-public class TransactionsController : ControllerBase
+public class TransactionsController(EtDbContext dbContext) : ControllerBase
 {
-    private readonly ETDbContext _dbContext;
+    // [Authorize]
+    // [HttpPost("getTotalPrice")]
+    // public async Task<IActionResult> getTotalPrice([FromForm] IFormFile imageFile)
+    // {
+    //     if (imageFile == null || imageFile.Length <= 0)
+    //     {
+    //         return BadRequest("No image file sent");
+    //     }
+    //     using (var memoryStream = new MemoryStream())
+    //     {
+    //         await imageFile.CopyToAsync(memoryStream);
+    //         byte[] imageData = memoryStream.ToArray();
+    //
+    //         // https://www.youtube.com/watch?v=rkJa6vbkMcU
+    //         string apiKey = "wypełnij se to sam (tutaj key1)";
+    //         string endpoint = "poradnik w filmiku wyżej";
+    //         AzureKeyCredential creds = new AzureKeyCredential(apiKey);
+    //         DocumentAnalysisClient client = new DocumentAnalysisClient(new Uri(endpoint), creds);
+    //         AnalyzeDocumentOperation operation = await client.AnalyzeDocumentAsync(WaitUntil.Completed, "prebuilt-receipt", new MemoryStream(imageData));
+    //         AnalyzeResult result = operation.Value;
+    //         for(int i = 0; i < result.Documents.Count; i++)
+    //         {
+    //             AnalyzedDocument document = result.Documents[i];
+    //             if(document.Fields.TryGetValue("Total", out DocumentField total))
+    //             { 
+    //                 return Ok(total);
+    //             }
+    //         }
+    //     }
+    //     return StatusCode(500, "Error");
+    // }
 
-    public TransactionsController(ETDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
-    [Authorize]
-    [HttpPost("getTotalPrice")]
-    public async Task<IActionResult> getTotalPrice([FromForm] IFormFile imageFile)
-    {
-        if (imageFile == null || imageFile.Length <= 0)
-        {
-            return BadRequest("No image file sent");
-        }
-        using (var memoryStream = new MemoryStream())
-        {
-            await imageFile.CopyToAsync(memoryStream);
-            byte[] imageData = memoryStream.ToArray();
-
-            // https://www.youtube.com/watch?v=rkJa6vbkMcU
-            string apiKey = "wypełnij se to sam (tutaj key1)";
-            string endpoint = "poradnik w filmiku wyżej";
-            AzureKeyCredential creds = new AzureKeyCredential(apiKey);
-            DocumentAnalysisClient client = new DocumentAnalysisClient(new Uri(endpoint), creds);
-            AnalyzeDocumentOperation operation = await client.AnalyzeDocumentAsync(WaitUntil.Completed, "prebuilt-receipt", new MemoryStream(imageData));
-            AnalyzeResult result = operation.Value;
-            for(int i = 0; i < result.Documents.Count; i++)
-            {
-                AnalyzedDocument document = result.Documents[i];
-                if(document.Fields.TryGetValue("Total", out DocumentField total))
-                { 
-                    return Ok(total);
-                }
-            }
-        }
-        return StatusCode(500, "Error");
-    }
-
-    [Authorize]
-    [HttpPost("addCategory")]
-    public async Task<IActionResult> AddCategory([FromBody] Category category)
-    {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
-        {
-            return Unauthorized("Session ended! Sign in again");
-        }
-        else
-        {
-            category.UserId = userId;
-            try
-            {
-                await _dbContext.Categories.AddAsync(category);
-                await _dbContext.SaveChangesAsync();
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, "Unable to add category! Error: " + e.Message);
-            }
-            return Ok("Category added successfully!");
-        }
-    }
+    // [Authorize]
+    // [HttpPost("addCategory")]
+    // public async Task<IActionResult> AddCategory([FromBody] Category category)
+    // {
+    //     var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    //     if (userId == null)
+    //     {
+    //         return Unauthorized("Session ended! Sign in again");
+    //     }
+    //     else
+    //     {
+    //         category.UserId = userId;
+    //         try
+    //         {
+    //             await dbContext.Categories.AddAsync(category);
+    //             await dbContext.SaveChangesAsync();
+    //         }
+    //         catch (Exception e)
+    //         {
+    //             return StatusCode(500, "Unable to add category! Error: " + e.Message);
+    //         }
+    //         return Ok("Category added successfully!");
+    //     }
+    // }
 
     [Authorize]
     [HttpPost("updateIncome")]
@@ -85,10 +79,10 @@ public class TransactionsController : ControllerBase
     {
         try
         {
-            var inc = await _dbContext.Incomes.FirstOrDefaultAsync(t => t.Id == transaction.Id);
+            var inc = await dbContext.Incomes.FirstOrDefaultAsync(t => t.Id == transaction.Id);
             if (inc != null)
             {
-                var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(t => t.Id == inc.WalletId);
+                var wallet = await dbContext.Wallets.FirstOrDefaultAsync(t => t.Id == inc.WalletId);
                 double balance = wallet.AccountBalance;
                 balance += transaction.Amount;
                 balance -= inc.Amount;
@@ -98,8 +92,8 @@ public class TransactionsController : ControllerBase
                 inc.Amount = transaction.Amount;
                 inc.Date = transaction.Date.ToLocalTime();
                 inc.Description = transaction.Description;
-                _dbContext.Incomes.Update(inc);
-                await _dbContext.SaveChangesAsync();
+                dbContext.Incomes.Update(inc);
+                await dbContext.SaveChangesAsync();
                 return Ok();
             }
             else
@@ -119,10 +113,10 @@ public class TransactionsController : ControllerBase
     {
         try
         {
-            var exp = await _dbContext.Expenditures.FirstOrDefaultAsync(t => t.Id == transaction.Id);
+            var exp = await dbContext.Expenditures.FirstOrDefaultAsync(t => t.Id == transaction.Id);
             if (exp != null)
             {
-                var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(t => t.Id == exp.WalletId);
+                var wallet = await dbContext.Wallets.FirstOrDefaultAsync(t => t.Id == exp.WalletId);
                 double balance = wallet.AccountBalance;
                 balance -= transaction.Amount;
                 balance += exp.Amount;
@@ -132,8 +126,8 @@ public class TransactionsController : ControllerBase
                 exp.Amount = transaction.Amount;
                 exp.Date = transaction.Date.ToLocalTime();
                 exp.Description = transaction.Description;
-                _dbContext.Expenditures.Update(exp);
-                await _dbContext.SaveChangesAsync();
+                dbContext.Expenditures.Update(exp);
+                await dbContext.SaveChangesAsync();
                 return Ok();
             }
             else
@@ -147,28 +141,28 @@ public class TransactionsController : ControllerBase
             return StatusCode(500, "Unable to update transaction! Error: " + e.Message);
         }
     }
-    [Authorize]
-    [HttpPost("addCategoryAuthorized")]
-    public async Task<IActionResult> AddCategoryAuthorized([FromBody] Category category)
-    {
-        try
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var user = await _dbContext.Users.Include("UserCategories").FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null)
-            {
-                return NotFound("User not found");
-            }
-            category.UserId = userId;
-            await _dbContext.Categories.AddAsync(category);
-            await _dbContext.SaveChangesAsync();
-        }
-        catch (Exception e)
-        {
-            return StatusCode(500, "Unable to add category! Error: " + e.Message);
-        }
-        return Ok("Category added successfully!");
-    }
+    // [Authorize]
+    // [HttpPost("addCategoryAuthorized")]
+    // public async Task<IActionResult> AddCategoryAuthorized([FromBody] Category category)
+    // {
+    //     try
+    //     {
+    //         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    //         var user = await dbContext.Users.Include("UserCategories").FirstOrDefaultAsync(u => u.Id == userId);
+    //         if (user == null)
+    //         {
+    //             return NotFound("User not found");
+    //         }
+    //         category.UserId = userId;
+    //         await dbContext.Categories.AddAsync(category);
+    //         await dbContext.SaveChangesAsync();
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         return StatusCode(500, "Unable to add category! Error: " + e.Message);
+    //     }
+    //     return Ok("Category added successfully!");
+    // }
 
     [Authorize]
     [HttpPost("addIncome")]
@@ -177,7 +171,7 @@ public class TransactionsController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var user = await _dbContext.Users.Include("Wallets.Incomes").FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await dbContext.Users.Include("Wallets.Incomes").FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
             {
@@ -190,7 +184,7 @@ public class TransactionsController : ControllerBase
                 return NotFound("Wallet not found");
             }
 
-            var category = await _dbContext.Categories.FirstOrDefaultAsync(c => c.Id == income.CategoryId);
+            var category = await dbContext.Categories.FirstOrDefaultAsync(c => c.Id == income.CategoryId);
             if (category == null || category.Type != CategoryType.Income)
             {
                 return BadRequest("You choosed invalid category. Please try again after refreshing the page.");
@@ -200,7 +194,7 @@ public class TransactionsController : ControllerBase
             income.Category = category;
             wallet.Incomes.Add(income);
             wallet.AccountBalance += income.Amount;
-            await _dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -218,7 +212,7 @@ public class TransactionsController : ControllerBase
         try
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var user = await _dbContext.Users.Include("Wallets.Expenditures").FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await dbContext.Users.Include("Wallets.Expenditures").FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
             {
@@ -236,13 +230,13 @@ public class TransactionsController : ControllerBase
                 return BadRequest("Insuficient funds!");
             }
 
-            var category = await _dbContext.Categories.FirstOrDefaultAsync(c => c.Id == expenditure.CategoryId);
+            var category = await dbContext.Categories.FirstOrDefaultAsync(c => c.Id == expenditure.CategoryId);
             if (category == null || category.Type != CategoryType.Expenditure)
             {
                 return BadRequest("You chose invalid category. Please try again after refreshing the page.");
             }
 
-            var budget = await _dbContext.Budgets.FirstOrDefaultAsync(b => b.BudgetCategory == category && b.Wallet == wallet);
+            var budget = await dbContext.Budgets.FirstOrDefaultAsync(b => b.BudgetCategory == category && b.Wallet == wallet);
             if (budget != null)
             {
                 budget.TotalExpenditure += expenditure.Amount;
@@ -252,7 +246,7 @@ public class TransactionsController : ControllerBase
             expenditure.Category = category;
             wallet.AccountBalance -= expenditure.Amount;
             wallet.Expenditures.Add(expenditure);
-            await _dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -275,64 +269,64 @@ public class TransactionsController : ControllerBase
 
             if (startDate.HasValue && endDate.HasValue)
             {
-                var incomes = _dbContext.Incomes
-                .Where(i => i.WalletId == walletId && i.Date >= startDate && i.Date <= endDate)
-                .OrderByDescending(i => i.Date)
-                .ToList();
+                var incomes = dbContext.Incomes
+                    .Where(i => i.WalletId == walletId && i.Date >= startDate && i.Date <= endDate)
+                    .OrderByDescending(i => i.Date)
+                    .ToList();
 
 
-                var expenditures = _dbContext.Expenditures
-               .Where(e => e.WalletId == walletId && e.Date >= startDate && e.Date <= endDate)
-               .OrderByDescending(e => e.Date)
-               .ToList();
+                var expenditures = dbContext.Expenditures
+                    .Where(e => e.WalletId == walletId && e.Date >= startDate && e.Date <= endDate)
+                    .OrderByDescending(e => e.Date)
+                    .ToList();
 
                 transaction = incomes.Cast<AbstractTransaction>().Concat(expenditures.Cast<AbstractTransaction>()).ToList();
             }
 
             else if (startDate.HasValue && !endDate.HasValue)
             {
-                var incomes = _dbContext.Incomes
-                .Where(i => i.WalletId == walletId && i.Date >= startDate)
-                .OrderByDescending(i => i.Date)
-                .ToList();
+                var incomes = dbContext.Incomes
+                    .Where(i => i.WalletId == walletId && i.Date >= startDate)
+                    .OrderByDescending(i => i.Date)
+                    .ToList();
 
 
-                var expenditures = _dbContext.Expenditures
-               .Where(e => e.WalletId == walletId && e.Date >= startDate)
-               .OrderByDescending(e => e.Date)
-               .ToList();
+                var expenditures = dbContext.Expenditures
+                    .Where(e => e.WalletId == walletId && e.Date >= startDate)
+                    .OrderByDescending(e => e.Date)
+                    .ToList();
 
                 transaction = incomes.Cast<AbstractTransaction>().Concat(expenditures.Cast<AbstractTransaction>()).ToList();
             }
 
             else if (!startDate.HasValue && endDate.HasValue)
             {
-                var incomes = _dbContext.Incomes
-                .Where(i => i.WalletId == walletId && i.Date <= endDate)
-                .OrderByDescending(i => i.Date)
-                .ToList();
+                var incomes = dbContext.Incomes
+                    .Where(i => i.WalletId == walletId && i.Date <= endDate)
+                    .OrderByDescending(i => i.Date)
+                    .ToList();
 
 
-                var expenditures = _dbContext.Expenditures
-               .Where(e => e.WalletId == walletId && e.Date <= endDate)
-               .OrderByDescending(e => e.Date)
-               .ToList();
+                var expenditures = dbContext.Expenditures
+                    .Where(e => e.WalletId == walletId && e.Date <= endDate)
+                    .OrderByDescending(e => e.Date)
+                    .ToList();
 
                 transaction = incomes.Cast<AbstractTransaction>().Concat(expenditures.Cast<AbstractTransaction>()).ToList();
             }
 
             else
             {
-                var incomes = _dbContext.Incomes
-               .Where(i => i.WalletId == walletId)
+                var incomes = dbContext.Incomes
+                    .Where(i => i.WalletId == walletId)
                     .OrderByDescending(i => i.Date)
-               .ToList();
+                    .ToList();
 
 
-                var expenditures = _dbContext.Expenditures
-               .Where(e => e.WalletId == walletId)
-                   .OrderByDescending(e => e.Date)
-               .ToList();
+                var expenditures = dbContext.Expenditures
+                    .Where(e => e.WalletId == walletId)
+                    .OrderByDescending(e => e.Date)
+                    .ToList();
 
                 transaction = incomes.Cast<AbstractTransaction>().Concat(expenditures.Cast<AbstractTransaction>()).ToList();
             }
@@ -340,29 +334,29 @@ public class TransactionsController : ControllerBase
             if (selectedCategory.HasValue)
             {
                 filteredTransaction = transaction
-                .Where(transaction => transaction.CategoryId == selectedCategory)
-                .ToList();
+                    .Where(transaction => transaction.CategoryId == selectedCategory)
+                    .ToList();
             }
             else { filteredTransaction = transaction; }
 
             if (minValue.HasValue)
             {
                 filteredTransaction = filteredTransaction
-                .Where(transaction => transaction.Amount >= minValue)
-                .ToList();
+                    .Where(transaction => transaction.Amount >= minValue)
+                    .ToList();
             }
 
             if (maxValue.HasValue)
             {
                 filteredTransaction = filteredTransaction
-                .Where(transaction => transaction.Amount <= maxValue)
-                .ToList();
+                    .Where(transaction => transaction.Amount <= maxValue)
+                    .ToList();
             }
 
             if (containsString != null)
             {
                 filteredTransaction = filteredTransaction
-                .Where(trans => caseSensitive.HasValue && caseSensitive.Value ? trans.Title.Contains(containsString) : trans.Title.ToLower().Contains(containsString.ToLower())).ToList();
+                    .Where(trans => caseSensitive.HasValue && caseSensitive.Value ? trans.Title.Contains(containsString) : trans.Title.ToLower().Contains(containsString.ToLower())).ToList();
             }
 
             var options = new JsonSerializerOptions
@@ -395,10 +389,10 @@ public class TransactionsController : ControllerBase
 
             if (startDate.HasValue && endDate.HasValue)
             {
-                var incomes = _dbContext.Incomes
-                .Where(i => i.WalletId == walletId && i.Date >= startDate && i.Date <= endDate)
-                .OrderByDescending(i => i.Date)
-                .ToList();
+                var incomes = dbContext.Incomes
+                    .Where(i => i.WalletId == walletId && i.Date >= startDate && i.Date <= endDate)
+                    .OrderByDescending(i => i.Date)
+                    .ToList();
 
 
                 transaction = incomes.Cast<AbstractTransaction>().ToList();
@@ -406,30 +400,30 @@ public class TransactionsController : ControllerBase
 
             else if (startDate.HasValue && !endDate.HasValue)
             {
-                var incomes = _dbContext.Incomes
-                .Where(i => i.WalletId == walletId && i.Date >= startDate)
-                .OrderByDescending(i => i.Date)
-                .ToList();
+                var incomes = dbContext.Incomes
+                    .Where(i => i.WalletId == walletId && i.Date >= startDate)
+                    .OrderByDescending(i => i.Date)
+                    .ToList();
 
                 transaction = incomes.Cast<AbstractTransaction>().ToList();
             }
 
             else if (!startDate.HasValue && endDate.HasValue)
             {
-                var incomes = _dbContext.Incomes
-                .Where(i => i.WalletId == walletId && i.Date <= endDate)
-                .OrderByDescending(i => i.Date)
-                .ToList();
+                var incomes = dbContext.Incomes
+                    .Where(i => i.WalletId == walletId && i.Date <= endDate)
+                    .OrderByDescending(i => i.Date)
+                    .ToList();
 
                 transaction = incomes.Cast<AbstractTransaction>().ToList(); ;
             }
 
             else
             {
-                var incomes = _dbContext.Incomes
-               .Where(i => i.WalletId == walletId)
+                var incomes = dbContext.Incomes
+                    .Where(i => i.WalletId == walletId)
                     .OrderByDescending(i => i.Date)
-               .ToList();
+                    .ToList();
 
                 transaction = incomes.Cast<AbstractTransaction>().ToList();
             }
@@ -437,29 +431,29 @@ public class TransactionsController : ControllerBase
             if (selectedCategory.HasValue)
             {
                 filteredTransaction = transaction
-                .Where(transaction => transaction.CategoryId == selectedCategory)
-                .ToList();
+                    .Where(transaction => transaction.CategoryId == selectedCategory)
+                    .ToList();
             }
             else { filteredTransaction = transaction; }
 
             if (minValue.HasValue)
             {
                 filteredTransaction = filteredTransaction
-                .Where(transaction => transaction.Amount >= minValue)
-                .ToList();
+                    .Where(transaction => transaction.Amount >= minValue)
+                    .ToList();
             }
 
             if (maxValue.HasValue)
             {
                 filteredTransaction = filteredTransaction
-                .Where(transaction => transaction.Amount <= maxValue)
-                .ToList();
+                    .Where(transaction => transaction.Amount <= maxValue)
+                    .ToList();
             }
 
             if (containsString != null)
             {
                 filteredTransaction = filteredTransaction
-                .Where(trans => caseSensitive.HasValue && caseSensitive.Value ? trans.Title.Contains(containsString) : trans.Title.ToLower().Contains(containsString.ToLower())).ToList();
+                    .Where(trans => caseSensitive.HasValue && caseSensitive.Value ? trans.Title.Contains(containsString) : trans.Title.ToLower().Contains(containsString.ToLower())).ToList();
             }
 
             var options = new JsonSerializerOptions
@@ -493,10 +487,10 @@ public class TransactionsController : ControllerBase
             if (startDate.HasValue && endDate.HasValue)
             {
 
-                var expenditures = _dbContext.Expenditures
-               .Where(e => e.WalletId == walletId && e.Date >= startDate && e.Date <= endDate)
-               .OrderByDescending(e => e.Date)
-               .ToList();
+                var expenditures = dbContext.Expenditures
+                    .Where(e => e.WalletId == walletId && e.Date >= startDate && e.Date <= endDate)
+                    .OrderByDescending(e => e.Date)
+                    .ToList();
 
                 transaction = expenditures.Cast<AbstractTransaction>().ToList();
             }
@@ -504,10 +498,10 @@ public class TransactionsController : ControllerBase
             else if (startDate.HasValue && !endDate.HasValue)
             {
 
-                var expenditures = _dbContext.Expenditures
-               .Where(e => e.WalletId == walletId && e.Date >= startDate)
-               .OrderByDescending(e => e.Date)
-               .ToList();
+                var expenditures = dbContext.Expenditures
+                    .Where(e => e.WalletId == walletId && e.Date >= startDate)
+                    .OrderByDescending(e => e.Date)
+                    .ToList();
 
                 transaction = expenditures.Cast<AbstractTransaction>().ToList();
             }
@@ -515,10 +509,10 @@ public class TransactionsController : ControllerBase
             else if (!startDate.HasValue && endDate.HasValue)
             {
 
-                var expenditures = _dbContext.Expenditures
-               .Where(e => e.WalletId == walletId && e.Date <= endDate)
-               .OrderByDescending(e => e.Date)
-               .ToList();
+                var expenditures = dbContext.Expenditures
+                    .Where(e => e.WalletId == walletId && e.Date <= endDate)
+                    .OrderByDescending(e => e.Date)
+                    .ToList();
 
                 transaction = expenditures.Cast<AbstractTransaction>().ToList();
             }
@@ -526,10 +520,10 @@ public class TransactionsController : ControllerBase
             else
             {
 
-                var expenditures = _dbContext.Expenditures
-               .Where(e => e.WalletId == walletId)
-                   .OrderByDescending(e => e.Date)
-               .ToList();
+                var expenditures = dbContext.Expenditures
+                    .Where(e => e.WalletId == walletId)
+                    .OrderByDescending(e => e.Date)
+                    .ToList();
 
                 transaction = expenditures.Cast<AbstractTransaction>().ToList();
             }
@@ -537,23 +531,23 @@ public class TransactionsController : ControllerBase
             if (selectedCategory.HasValue)
             {
                 filteredTransaction = transaction
-                .Where(transaction => transaction.CategoryId == selectedCategory)
-                .ToList();
+                    .Where(transaction => transaction.CategoryId == selectedCategory)
+                    .ToList();
             }
             else { filteredTransaction = transaction; }
 
             if (minValue.HasValue)
             {
                 filteredTransaction = filteredTransaction
-                .Where(transaction => transaction.Amount >= minValue)
-                .ToList();
+                    .Where(transaction => transaction.Amount >= minValue)
+                    .ToList();
             }
 
             if (maxValue.HasValue)
             {
                 filteredTransaction = filteredTransaction
-                .Where(transaction => transaction.Amount <= maxValue)
-                .ToList();
+                    .Where(transaction => transaction.Amount <= maxValue)
+                    .ToList();
             }
 
             var options = new JsonSerializerOptions
@@ -566,7 +560,7 @@ public class TransactionsController : ControllerBase
             if (containsString != null)
             {
                 filteredTransaction = filteredTransaction
-                .Where(trans => caseSensitive.HasValue && caseSensitive.Value ? trans.Title.Contains(containsString) : trans.Title.ToLower().Contains(containsString.ToLower())).ToList();
+                    .Where(trans => caseSensitive.HasValue && caseSensitive.Value ? trans.Title.Contains(containsString) : trans.Title.ToLower().Contains(containsString.ToLower())).ToList();
             }
 
             options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
@@ -590,7 +584,7 @@ public class TransactionsController : ControllerBase
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
-            var incomes = _dbContext.Incomes
+            var incomes = dbContext.Incomes
                 .Where(i => i.WalletId == walletId && i.Date >= startDate && i.Date <= endDate)
                 .Select(i => new
                 {
@@ -603,7 +597,7 @@ public class TransactionsController : ControllerBase
                 })
                 .ToList();
 
-            var expenditures = _dbContext.Expenditures
+            var expenditures = dbContext.Expenditures
                 .Where(e => e.WalletId == walletId && e.Date >= startDate && e.Date <= endDate)
                 .Select(e => new
                 {
@@ -628,7 +622,7 @@ public class TransactionsController : ControllerBase
                 .Select(group => new
                 {
                     Category = group.Key,
-                    CategoryName = _dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
+                    CategoryName = dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
                     TotalAmount = group.Sum(i => i.Amount)
                 })
                 .ToList();
@@ -638,7 +632,7 @@ public class TransactionsController : ControllerBase
                 .Select(group => new
                 {
                     Category = group.Key,
-                    CategoryName = _dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
+                    CategoryName = dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
                     TotalAmount = group.Sum(i => i.Amount)
                 })
                 .ToList();
@@ -674,20 +668,20 @@ public class TransactionsController : ControllerBase
             var startDate = new DateTime(year, 1, 1);
             var endDate = startDate.AddYears(1).AddDays(-1);
 
-            var incomes = _dbContext.Incomes
-                 .Where(i => i.WalletId == walletId && i.Date >= startDate && i.Date <= endDate)
-                 .Select(i => new
-                 {
-                     Date = i.Date,
-                     Title = i.Title,
-                     Description = i.Description,
-                     Amount = i.Amount,
-                     Category = i.CategoryId,
-                     Type = "income"
-                 })
-                 .ToList();
+            var incomes = dbContext.Incomes
+                .Where(i => i.WalletId == walletId && i.Date >= startDate && i.Date <= endDate)
+                .Select(i => new
+                {
+                    Date = i.Date,
+                    Title = i.Title,
+                    Description = i.Description,
+                    Amount = i.Amount,
+                    Category = i.CategoryId,
+                    Type = "income"
+                })
+                .ToList();
 
-            var expenditures = _dbContext.Expenditures
+            var expenditures = dbContext.Expenditures
                 .Where(e => e.WalletId == walletId && e.Date >= startDate && e.Date <= endDate)
                 .Select(e => new
                 {
@@ -712,7 +706,7 @@ public class TransactionsController : ControllerBase
                 .Select(group => new
                 {
                     Category = group.Key,
-                    CategoryName = _dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
+                    CategoryName = dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
                     TotalAmount = group.Sum(i => i.Amount)
                 })
                 .ToList();
@@ -722,7 +716,7 @@ public class TransactionsController : ControllerBase
                 .Select(group => new
                 {
                     Category = group.Key,
-                    CategoryName = _dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
+                    CategoryName = dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
                     TotalAmount = group.Sum(i => i.Amount)
                 })
                 .ToList();
@@ -763,12 +757,12 @@ public class TransactionsController : ControllerBase
                 var startDate = new DateTime(currentDate.Year, currentDate.Month, 1);
                 var endDate = startDate.AddMonths(1).AddDays(-1);
 
-                var incomes = _dbContext.Incomes
+                var incomes = dbContext.Incomes
                     .Where(i => i.WalletId == walletId && i.Date >= startDate && i.Date <= endDate)
                     .Select(i => i.Amount)
                     .Sum();
 
-                var expenditures = _dbContext.Expenditures
+                var expenditures = dbContext.Expenditures
                     .Where(e => e.WalletId == walletId && e.Date >= startDate && e.Date <= endDate)
                     .Select(e => e.Amount)
                     .Sum();
@@ -806,7 +800,7 @@ public class TransactionsController : ControllerBase
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
 
-            var incomes = _dbContext.Incomes
+            var incomes = dbContext.Incomes
                 .Where(i => i.WalletId == walletId && i.Date >= startDate && i.Date <= endDate)
                 .Select(i => new
                 {
@@ -819,7 +813,7 @@ public class TransactionsController : ControllerBase
                 })
                 .ToList();
 
-            var expenditures = _dbContext.Expenditures
+            var expenditures = dbContext.Expenditures
                 .Where(e => e.WalletId == walletId && e.Date >= startDate && e.Date <= endDate)
                 .Select(e => new
                 {
@@ -844,7 +838,7 @@ public class TransactionsController : ControllerBase
                 .Select(group => new
                 {
                     Category = group.Key,
-                    CategoryName = _dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
+                    CategoryName = dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
                     TotalAmount = group.Sum(i => i.Amount)
                 })
                 .ToList();
@@ -854,11 +848,11 @@ public class TransactionsController : ControllerBase
                 .Select(group => new
                 {
                     Category = group.Key,
-                    CategoryName = _dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
+                    CategoryName = dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
                     TotalAmount = group.Sum(i => i.Amount)
                 })
                 .ToList();
-            var walletName = _dbContext.Wallets
+            var walletName = dbContext.Wallets
                 .Where(w => w.Id == walletId)
                 .Select(w => w.Name)
                 .FirstOrDefault();
@@ -939,7 +933,7 @@ public class TransactionsController : ControllerBase
             var startDate = new DateTime(year, month, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
-            var incomes = _dbContext.Incomes
+            var incomes = dbContext.Incomes
                 .Where(i => i.WalletId == walletId && i.Date >= startDate && i.Date <= endDate)
                 .Select(i => new
                 {
@@ -952,7 +946,7 @@ public class TransactionsController : ControllerBase
                 })
                 .ToList();
 
-            var expenditures = _dbContext.Expenditures
+            var expenditures = dbContext.Expenditures
                 .Where(e => e.WalletId == walletId && e.Date >= startDate && e.Date <= endDate)
                 .Select(e => new
                 {
@@ -977,7 +971,7 @@ public class TransactionsController : ControllerBase
                 .Select(group => new
                 {
                     Category = group.Key,
-                    CategoryName = _dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
+                    CategoryName = dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
                     TotalAmount = group.Sum(i => i.Amount)
                 })
                 .ToList();
@@ -987,11 +981,11 @@ public class TransactionsController : ControllerBase
                 .Select(group => new
                 {
                     Category = group.Key,
-                    CategoryName = _dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
+                    CategoryName = dbContext.Categories.FirstOrDefault(c => c.Id == group.Key)?.Name,
                     TotalAmount = group.Sum(i => i.Amount)
                 })
                 .ToList();
-            var walletName = _dbContext.Wallets
+            var walletName = dbContext.Wallets
                 .Where(w => w.Id == walletId)
                 .Select(w => w.Name)
                 .FirstOrDefault();
@@ -1035,12 +1029,12 @@ public class TransactionsController : ControllerBase
     public async Task<string> GetAllCategories()
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var user = _dbContext.Users.FirstOrDefault(u => u.Id == userId);
+        var user = dbContext.Users.FirstOrDefault(u => u.Id == userId);
         if (user == null)
             return "";
         try
         {
-            List<Category> categories = _dbContext.Categories.Where(c => c.UserId == user.Id || c.UserId == null).ToList();
+            List<Category> categories = dbContext.Categories.Where(c => c.UserId == user.Id || c.UserId == null).ToList();
             return JsonSerializer.Serialize(categories);
         }
         catch (Exception ex)
@@ -1055,7 +1049,7 @@ public class TransactionsController : ControllerBase
     {
         try
         {
-            var existingCategory = await _dbContext.Categories.FindAsync(categoryId);
+            var existingCategory = await dbContext.Categories.FindAsync(categoryId);
 
             if (existingCategory == null)
             {
@@ -1065,8 +1059,8 @@ public class TransactionsController : ControllerBase
             existingCategory.Name = updatedCategory.Name;
             existingCategory.Type = updatedCategory.Type;
 
-            _dbContext.Categories.Update(existingCategory);
-            await _dbContext.SaveChangesAsync();
+            dbContext.Categories.Update(existingCategory);
+            await dbContext.SaveChangesAsync();
         }
         catch (Exception e)
         {
@@ -1080,26 +1074,26 @@ public class TransactionsController : ControllerBase
     {
         try
         {
-            var income = await _dbContext.Incomes.FirstOrDefaultAsync(transaction => transaction.Id == transactionId);
+            var income = await dbContext.Incomes.FirstOrDefaultAsync(transaction => transaction.Id == transactionId);
             if (income != null)
             {
-                _dbContext.Incomes.Remove(income);
-                var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(t => t.Id == income.WalletId);
+                dbContext.Incomes.Remove(income);
+                var wallet = await dbContext.Wallets.FirstOrDefaultAsync(t => t.Id == income.WalletId);
                 double balance = wallet.AccountBalance;
                 balance -= income.Amount;
                 wallet.AccountBalance = balance;
-                await _dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
                 return Ok();
             }
-            var expenditure = await _dbContext.Expenditures.FirstOrDefaultAsync(transaction => transaction.Id == transactionId);
+            var expenditure = await dbContext.Expenditures.FirstOrDefaultAsync(transaction => transaction.Id == transactionId);
             if (expenditure != null)
             {
-                _dbContext.Expenditures.Remove(expenditure);
-                var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(t => t.Id == expenditure.WalletId);
+                dbContext.Expenditures.Remove(expenditure);
+                var wallet = await dbContext.Wallets.FirstOrDefaultAsync(t => t.Id == expenditure.WalletId);
                 double balance = wallet.AccountBalance;
                 balance += expenditure.Amount;
                 wallet.AccountBalance = balance;
-                await _dbContext.SaveChangesAsync();
+                await dbContext.SaveChangesAsync();
                 return Ok();
             }
             return NotFound();
@@ -1115,15 +1109,15 @@ public class TransactionsController : ControllerBase
     {
         try
         {
-            var categoryToDelete = await _dbContext.Categories.FindAsync(categoryId);
+            var categoryToDelete = await dbContext.Categories.FindAsync(categoryId);
 
             if (categoryToDelete == null)
             {
                 return NotFound("Category not found");
             }
 
-            _dbContext.Categories.Remove(categoryToDelete);
-            await _dbContext.SaveChangesAsync();
+            dbContext.Categories.Remove(categoryToDelete);
+            await dbContext.SaveChangesAsync();
         }
         catch (Exception e)
         {
@@ -1137,14 +1131,14 @@ public class TransactionsController : ControllerBase
     {
         try
         {
-            var categoryExists = await _dbContext.Categories.AnyAsync(c => c.Id == categoryId);
+            var categoryExists = await dbContext.Categories.AnyAsync(c => c.Id == categoryId);
 
             if (!categoryExists)
             {
                 return NotFound("Category not found");
             }
 
-            var hasTransactions = await _dbContext.Expenditures.AnyAsync(e => e.CategoryId == categoryId);
+            var hasTransactions = await dbContext.Expenditures.AnyAsync(e => e.CategoryId == categoryId);
 
             return Ok(new { HasTransactions = hasTransactions });
         }
@@ -1176,7 +1170,7 @@ public class TransactionsController : ControllerBase
     {
         try
         {
-            var wallet = await _dbContext.Wallets.FindAsync(walletId);
+            var wallet = await dbContext.Wallets.FindAsync(walletId);
 
             return JsonSerializer.Serialize(wallet.Name);
         }

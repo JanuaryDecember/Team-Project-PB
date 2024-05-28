@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using expenses_tracker_pb.Server.Enums;
+using expenses_tracker_pb.Server.Model;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-
 using Microsoft.IdentityModel.Tokens;
-
 
 namespace _2023pz_trrepo.Controllers
 {
@@ -13,9 +13,9 @@ namespace _2023pz_trrepo.Controllers
     [Route("api/budget")]
     public class BudgetController : ControllerBase
     {
-        private readonly ETDbContext _dbContext;
+        private readonly EtDbContext _dbContext;
 
-        public BudgetController(ETDbContext dbContext)
+        public BudgetController(EtDbContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -38,7 +38,8 @@ namespace _2023pz_trrepo.Controllers
         [HttpGet("budgetCategories")]
         public async Task<IActionResult> BudgetCategories()
         {
-            List<Category> budgetCategoriesList = await _dbContext.Categories.Where(x => x.Type == CategoryType.Expenditure).ToListAsync();
+            List<Category> budgetCategoriesList =
+                await _dbContext.Categories.Where(x => x.Type == CategoryType.Expenditure).ToListAsync();
             if (budgetCategoriesList.IsNullOrEmpty())
                 return NotFound("Cant find any BudgetCategories!");
 
@@ -54,7 +55,8 @@ namespace _2023pz_trrepo.Controllers
             var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id.Equals(userId));
 
             var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(x => x.Id.Equals(budgetDetails.walletId));
-            var budgetCategory = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Id.Equals(budgetDetails.categoryId));
+            var budgetCategory =
+                await _dbContext.Categories.FirstOrDefaultAsync(x => x.Id.Equals(budgetDetails.categoryId));
 
             if (wallet == null || budgetCategory == null || user == null)
                 return BadRequest("Error finding wallet, budget category, or user!");
@@ -141,7 +143,8 @@ namespace _2023pz_trrepo.Controllers
                 return NotFound("Budget not found or you do not have permission to edit it.");
 
             var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(x => x.Id.Equals(editedBudget.walletId));
-            var budgetCategory = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Id.Equals(editedBudget.categoryId));
+            var budgetCategory =
+                await _dbContext.Categories.FirstOrDefaultAsync(x => x.Id.Equals(editedBudget.categoryId));
 
             budget.Name = editedBudget.name;
             budget.TotalIncome = editedBudget.totalIncome;
@@ -173,17 +176,17 @@ namespace _2023pz_trrepo.Controllers
                 return NotFound("No budgets for selected wallet.");
 
             var negativeBudgets = budgetList.Where(b => b.RemainingBalance < 0)
-            .Select(b => new BudgetDto
-            {
-                Id = b.Id,
-                Name = b.Name,
-                TotalIncome = b.TotalIncome,
-                TotalExpenditure = b.TotalExpenditure,
-                RemainingBalance = b.RemainingBalance,
-                WalletName = b.Wallet.Name,
-                BudgetCategoryName = b.BudgetCategory.Name
-            })
-            .ToList();
+                .Select(b => new BudgetDto
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    TotalIncome = b.TotalIncome,
+                    TotalExpenditure = b.TotalExpenditure,
+                    RemainingBalance = b.RemainingBalance,
+                    WalletName = b.Wallet.Name,
+                    BudgetCategoryName = b.BudgetCategory.Name
+                })
+                .ToList();
 
             return Ok(negativeBudgets);
         }
@@ -204,15 +207,14 @@ namespace _2023pz_trrepo.Controllers
             if (budget == null)
                 return NotFound("Budget not found or you do not have permission to view it.");
 
-            var transactions = await _dbContext.Expenditures
-                .Where(t => t.Wallet == budget.Wallet && t.Category == budget.BudgetCategory)
+            var transactions = await _dbContext.Transactions
+                .Where(t => t.Wallet == budget.Wallet && t.Category == budget.BudgetCategory &&
+                            t.Type.Equals(TransactionTypeEnum.Expense))
                 .ToListAsync();
 
-            if (transactions == null)
-                return NotFound("No transactions for selected budget.");
-
-            return Ok(transactions);
+            return transactions.Count.Equals(0) ? NotFound("No transactions for selected budget.") : Ok(transactions);
         }
+
         public class CreateBudgetDto
         {
             public string name { get; set; }
@@ -221,6 +223,7 @@ namespace _2023pz_trrepo.Controllers
             public long walletId { get; set; }
             public long categoryId { get; set; }
         }
+
         public class BudgetDto
         {
             public long Id { get; set; }

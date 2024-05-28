@@ -1,4 +1,6 @@
-﻿namespace expenses_tracker_pb.Server.Services.UserService
+﻿using expenses_tracker_pb.Server.Model;
+
+namespace expenses_tracker_pb.Server.Services.UserService
 {
     public interface IUserService
     {
