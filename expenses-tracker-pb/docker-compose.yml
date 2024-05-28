@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  ms-sql-server:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+    environment:
+        ACCEPT_EULA: "Y"
+        SA_PASSWORD: "Testqwe12#$"
+        MSSQL_PID: Express
+    ports:
+        - "1433:1433"
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      server: "ms-sql-server"
+      port: "1433"
+      database: "ExpensesTrackerDatabase"
+      dbuser: "SA"
+      pass: "Testqwe12#$"
