@@ -29,7 +29,7 @@ namespace expenses_tracker_pb.Server.Services
             }
             else
             {
-                connectionString = builder.Configuration.GetConnectionString("DawidConnection");
+                connectionString = builder.Configuration.GetConnectionString("PaulinaConnection");
             }
             
             return connectionString;
